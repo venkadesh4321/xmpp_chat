@@ -56,15 +56,14 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.constraintlayout)
 
-    implementation("org.igniterealtime.smack:smack-android:4.4.6") {
-        exclude(group ="xpp3", module = "xpp3")
-    }
-    implementation("org.igniterealtime.smack:smack-extensions:4.4.6") {
-        exclude(group = "xpp3", module = "xpp3")
-    }
+    implementation(libs.smack.android)
     implementation(libs.smack.tcp)
-
-    // For debugging/logging
+    implementation(libs.smack.extensions)
     implementation(libs.smack.debug)
+    configurations.all {
+        exclude(group = "xpp3", module = "xpp3")
+        exclude(group = "xpp3", module = "xpp3_min")
+    }
 }

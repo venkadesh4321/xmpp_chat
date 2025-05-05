@@ -5,10 +5,7 @@
     android:layout_height="match_parent"
     android:layout_margin="20dp">
 
-    <ListView
-        android:id="@+id/ltv_chat"
-        android:layout_width="match_parent"
-        android:layout_height="300dp" />
+
 
     <LinearLayout
         android:id="@+id/ll_chat_input"
@@ -18,18 +15,6 @@
         android:layout_margin="10dp"
         android:orientation="horizontal">
 
-        <EditText
-            android:id="@+id/et_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.8"
-            android:hint="type here" />
 
-        <Button
-            android:id="@+id/btn_send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.2"
-            android:text="send" />
     </LinearLayout>
 </RelativeLayout>
