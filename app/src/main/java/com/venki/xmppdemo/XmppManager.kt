@@ -42,11 +42,12 @@ class XmppManager {
         }
     }
 
-    fun sendMessage(toJid: String, messageBody: String) {
+    fun sendMessage(to: String, messageBody: String) {
         try {
             val chatManager = ChatManager.getInstanceFor(connection)
-            val jid = JidCreate.entityBareFrom(toJid)
-            Log.d("XmppManager", "Message sent to $toJid: $messageBody")
+            val finalJid = if(to.contains("@")) to else "$to@$domain"
+            val jid = JidCreate.entityBareFrom(finalJid)
+            Log.d("XmppManager", "Message sent to $to: $messageBody")
             val chat = chatManager.chatWith(jid)
             chat.send(messageBody)
         } catch (e: Exception) {

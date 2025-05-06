@@ -22,10 +22,11 @@ class MainActivity : ComponentActivity() {
 
     private lateinit var chatList: ListView
     private lateinit var messageEditText: EditText
+    private lateinit var toEditText: EditText
     private lateinit var sendBtn: Button
 
     private val messages = mutableListOf<String>()
-    private var isConnected: Boolean? = null
+    private var isConnected = false
 
     private var xmppManager: XmppManager? = null
     private var messageAdapter: ArrayAdapter<String>? = null
@@ -47,8 +48,8 @@ class MainActivity : ComponentActivity() {
             if (userName.isNotEmpty() && password.isNotEmpty()) {
                 Log.d(TAG, "onCreate: user name - $userName password - $password")
                 lifecycleScope.launch {
-                    isConnected = xmppManager?.connect(userName, password)
-                    if (isConnected!!) {
+                    isConnected = xmppManager?.connect(userName, password)!!
+                    if (isConnected) {
                         Log.d(TAG, "onCreate: connected")
                         statusTextView.text = "Connected"
                         Toast.makeText(this@MainActivity, "Connected", Toast.LENGTH_SHORT).show()
@@ -72,11 +73,13 @@ class MainActivity : ComponentActivity() {
 
         sendBtn.setOnClickListener {
             val message = messageEditText.text.toString()
+            val to = toEditText.text.toString()
             if (message.isNotEmpty() && isConnected!!) {
                 messages.add(message)
-                xmppManager?.sendMessage("nantha@siruthuli.duckdns.org", message)
+                xmppManager?.sendMessage(to, message)
                 messageEditText.text.clear()
                 messageAdapter?.notifyDataSetChanged()
+                chatList.smoothScrollToPosition(messages.size - 1)
             }
         }
     }
@@ -85,6 +88,7 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "addMessage: from: $from message: $message")
         messages.add("$from: $message")
         messageAdapter?.notifyDataSetChanged()
+        chatList.smoothScrollToPosition(messages.size - 1)
     }
 
     private fun initViews() {
@@ -94,6 +98,12 @@ class MainActivity : ComponentActivity() {
         statusTextView = findViewById(R.id.tv_status)
         chatList = findViewById(R.id.ltv_chat)
         messageEditText = findViewById(R.id.et_message)
+        toEditText = findViewById(R.id.et_to)
         sendBtn = findViewById(R.id.btn_send)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        xmppManager?.disconnect()
     }
 }
