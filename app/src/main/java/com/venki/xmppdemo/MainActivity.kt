@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d(TAG, "onCreate")
         setContentView(R.layout.activity_main)
 
         initViews()
@@ -42,8 +43,8 @@ class MainActivity : ComponentActivity() {
         chatList.adapter = messageAdapter
 
         submitBtn.setOnClickListener {
-            val userName = userNameEditText.text.toString()
-            val password = passwordEditText.text.toString()
+            val userName = userNameEditText.text.toString().trim()
+            val password = passwordEditText.text.toString().trim()
 
             if (userName.isNotEmpty() && password.isNotEmpty()) {
                 Log.d(TAG, "onCreate: user name - $userName password - $password")
@@ -72,21 +73,36 @@ class MainActivity : ComponentActivity() {
         }
 
         sendBtn.setOnClickListener {
-            val message = messageEditText.text.toString()
-            val to = toEditText.text.toString()
-            if (message.isNotEmpty() && isConnected!!) {
-                messages.add(message)
-                xmppManager?.sendMessage(to, message)
+            val message = messageEditText.text.toString().trim()
+            val recipient = toEditText.text.toString().trim()
+
+            if (recipient.isEmpty()) {
+                Toast.makeText(this, "Enter recipient", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (message.isEmpty()) {
+                Toast.makeText(this, "Enter message", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (isConnected) {
+                messages.add("Me to $recipient: $message")
+                lifecycleScope.launch {
+                    xmppManager?.sendMessage(recipient, message)
+                }
                 messageEditText.text.clear()
                 messageAdapter?.notifyDataSetChanged()
                 chatList.smoothScrollToPosition(messages.size - 1)
+            } else {
+                Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun addMessage(from: String, message: String) {
         Log.d(TAG, "addMessage: from: $from message: $message")
-        messages.add("$from: $message")
+        messages.add("${from.substringBefore("@")}: $message")
         messageAdapter?.notifyDataSetChanged()
         chatList.smoothScrollToPosition(messages.size - 1)
     }
@@ -100,6 +116,21 @@ class MainActivity : ComponentActivity() {
         messageEditText = findViewById(R.id.et_message)
         toEditText = findViewById(R.id.et_to)
         sendBtn = findViewById(R.id.btn_send)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Log.d(TAG, "onSaveInstanceState:")
+        outState.putStringArrayList("messages", ArrayList(messages))
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        Log.d(TAG, "onRestoreInstanceState")
+        savedInstanceState.getStringArrayList("messages")?.let {
+            messages.addAll(it)
+            messageAdapter?.notifyDataSetChanged()
+        }
     }
 
     override fun onDestroy() {

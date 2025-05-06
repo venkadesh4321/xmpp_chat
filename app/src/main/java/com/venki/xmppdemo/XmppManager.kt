@@ -42,7 +42,7 @@ class XmppManager {
         }
     }
 
-    fun sendMessage(to: String, messageBody: String) {
+    suspend fun sendMessage(to: String, messageBody: String) {
         try {
             val chatManager = ChatManager.getInstanceFor(connection)
             val finalJid = if(to.contains("@")) to else "$to@$domain"
