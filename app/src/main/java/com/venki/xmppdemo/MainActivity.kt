@@ -33,7 +33,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
         setContentView(R.layout.activity_main)
 
         initViews()
@@ -62,7 +61,7 @@ class MainActivity : ComponentActivity() {
                         }
                     } else {
                         Log.d(TAG, "onCreate: not connected")
-                        statusTextView.text = "Not Connected"
+                        statusTextView.text = "Not connected"
                         Toast.makeText(this@MainActivity, "Connection failed", Toast.LENGTH_SHORT)
                             .show()
                     }
@@ -114,7 +113,7 @@ class MainActivity : ComponentActivity() {
         statusTextView = findViewById(R.id.tv_status)
         chatList = findViewById(R.id.ltv_chat)
         messageEditText = findViewById(R.id.et_message)
-        toEditText = findViewById(R.id.et_to)
+        toEditText = findViewById(R.id.et_recipient)
         sendBtn = findViewById(R.id.btn_send)
     }
 
