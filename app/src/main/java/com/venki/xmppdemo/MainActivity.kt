@@ -10,15 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.jivesoftware.smack.AbstractXMPPConnection
-import org.jivesoftware.smack.ConnectionConfiguration
-import org.jivesoftware.smack.chat2.ChatManager
-import org.jivesoftware.smack.tcp.XMPPTCPConnection
-import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration
-import org.jxmpp.jid.impl.JidCreate
 
 class MainActivity : ComponentActivity() {
     private val TAG = MainActivity::class.simpleName
@@ -33,20 +25,20 @@ class MainActivity : ComponentActivity() {
     private lateinit var sendBtn: Button
 
     private val messages = mutableListOf<String>()
-    private var isConnected = false
-    var connection: AbstractXMPPConnection? = null
+    private var isConnected: Boolean? = null
+
+    private var xmppManager: XmppManager? = null
+    private var messageAdapter: ArrayAdapter<String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        submitBtn = findViewById(R.id.submit_btn)
-        userNameEditText = findViewById(R.id.user_name_edit_text)
-        passwordEditText = findViewById(R.id.password_edit_text)
-        statusTextView = findViewById(R.id.tv_status)
-        chatList = findViewById(R.id.ltv_chat)
-        messageEditText = findViewById(R.id.et_message)
-        sendBtn = findViewById(R.id.btn_send)
+        initViews()
+
+        xmppManager = XmppManager()
+        messageAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, messages)
+        chatList.adapter = messageAdapter
 
         submitBtn.setOnClickListener {
             val userName = userNameEditText.text.toString()
@@ -55,17 +47,15 @@ class MainActivity : ComponentActivity() {
             if (userName.isNotEmpty() && password.isNotEmpty()) {
                 Log.d(TAG, "onCreate: user name - $userName password - $password")
                 lifecycleScope.launch {
-                    isConnected = connect(userName, password)
-                    if (isConnected) {
+                    isConnected = xmppManager?.connect(userName, password)
+                    if (isConnected!!) {
                         Log.d(TAG, "onCreate: connected")
                         statusTextView.text = "Connected"
                         Toast.makeText(this@MainActivity, "Connected", Toast.LENGTH_SHORT).show()
 
-                        setupIncomingMessageListener { from, message ->
+                        xmppManager?.setupIncomingMessageListener { from, message ->
                             runOnUiThread {
-                                messages.add("$from: $message")
-//                                adapter.notifyDataSetChanged()
-                                Log.d(TAG, "onCreate: " + message)
+                                addMessage(from, message)
                             }
                         }
                     } else {
@@ -80,66 +70,30 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, messages)
-        chatList.adapter = adapter
-
         sendBtn.setOnClickListener {
             val message = messageEditText.text.toString()
-            if (message.isNotEmpty() && isConnected) {
+            if (message.isNotEmpty() && isConnected!!) {
                 messages.add(message)
-                sendMessage("nantha@siruthuli.duckdns.org", message)
+                xmppManager?.sendMessage("nantha@siruthuli.duckdns.org", message)
                 messageEditText.text.clear()
-                adapter.notifyDataSetChanged()
-            }
-        }
-
-    }
-
-    suspend fun connect(userName: String, password: String): Boolean {
-        val hostName = "siruthuli.duckdns.org"
-        val domain = "siruthuli.duckdns.org"
-        val port = 5222
-
-        return withContext(Dispatchers.IO) {
-            try {
-                val config = XMPPTCPConnectionConfiguration.builder()
-                    .setXmppDomain(domain)
-                    .setHost(hostName)
-                    .setPort(port)
-                    .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
-                    .setUsernameAndPassword(userName, password)
-                    .build()
-
-                connection = XMPPTCPConnection(config)
-                Log.d(TAG, "Trying to connect...")
-                connection?.connect()
-                connection?.login()
-                Log.d(TAG, "Connected to server: ${connection?.host}")
-                true
-            } catch (e: Exception) {
-                Log.e(TAG, "Connection failed: ${e.message}")
-                false
+                messageAdapter?.notifyDataSetChanged()
             }
         }
     }
 
-    fun sendMessage(toJid: String, messageBody: String) {
-        try {
-            val chatManager = ChatManager.getInstanceFor(connection)
-            val jid = JidCreate.entityBareFrom(toJid)
-            Log.d("XmppManager", "Message sent to $toJid: $messageBody")
-            val chat = chatManager.chatWith(jid)
-            chat.send(messageBody)
-        } catch (e: Exception) {
-            Log.e("XmppManager", "Failed to send message: ${e.message}")
-        }
+    private fun addMessage(from: String, message: String) {
+        Log.d(TAG, "addMessage: from: $from message: $message")
+        messages.add("$from: $message")
+        messageAdapter?.notifyDataSetChanged()
     }
 
-    fun setupIncomingMessageListener(onNewMessage: (from: String, message: String) -> Unit) {
-        val chatManager = ChatManager.getInstanceFor(connection)
-        chatManager.addIncomingListener { from, message, chat ->
-            Log.d("XmppManager", "New message from $from: ${message.body}")
-            onNewMessage(from.asBareJid().toString(), message.body)
-        }
+    private fun initViews() {
+        submitBtn = findViewById(R.id.submit_btn)
+        userNameEditText = findViewById(R.id.user_name_edit_text)
+        passwordEditText = findViewById(R.id.password_edit_text)
+        statusTextView = findViewById(R.id.tv_status)
+        chatList = findViewById(R.id.ltv_chat)
+        messageEditText = findViewById(R.id.et_message)
+        sendBtn = findViewById(R.id.btn_send)
     }
 }
