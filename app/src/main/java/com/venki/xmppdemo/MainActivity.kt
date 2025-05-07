@@ -59,7 +59,8 @@ class MainActivity : ComponentActivity() {
 
                         xmppManager?.setupIncomingMessageListener { from, message ->
                             runOnUiThread {
-                                addMessage(message, false)
+                                val chat = Chat(message, false)
+                                addChat(chat)
                             }
                         }
                     } else {
@@ -91,7 +92,7 @@ class MainActivity : ComponentActivity() {
             if (isConnected) {
                 val chat = Chat(message, true)
                 Log.d(TAG, "send - $chat")
-                addMessage(message, true)
+                addChat(chat)
                 lifecycleScope.launch {
                     xmppManager?.sendMessage(recipient, message)
                 }
@@ -108,8 +109,7 @@ class MainActivity : ComponentActivity() {
         chatList.adapter = chatListAdapter
     }
 
-    private fun addMessage(message: String, isSent: Boolean) {
-        val chat = Chat(message, isSent)
+    private fun addChat(chat: Chat) {
         chats.add(chat)
         chatListAdapter?.notifyDataSetChanged()
     }
