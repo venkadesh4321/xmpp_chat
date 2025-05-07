@@ -49,6 +49,8 @@
         android:id="@+id/ltv_chat"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:stackFromBottom="true"
+        android:transcriptMode="alwaysScroll"
         app:layout_constraintBottom_toTopOf="@+id/et_recipient"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -1,7 +1,10 @@
 package com.venki.xmppdemo
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -29,17 +32,15 @@ class MainActivity : ComponentActivity() {
     private var isConnected = false
 
     private var xmppManager: XmppManager? = null
-    private var messageAdapter: ArrayAdapter<String>? = null
+    private var chatListAdapter: ChatListAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         initViews()
-
+        configureListAdapter()
         xmppManager = XmppManager()
-        messageAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, messages)
-        chatList.adapter = messageAdapter
 
         submitBtn.setOnClickListener {
             val userName = userNameEditText.text.toString().trim()
@@ -91,19 +92,22 @@ class MainActivity : ComponentActivity() {
                     xmppManager?.sendMessage(recipient, message)
                 }
                 messageEditText.text.clear()
-                messageAdapter?.notifyDataSetChanged()
-                chatList.smoothScrollToPosition(messages.size - 1)
+                chatListAdapter?.notifyDataSetChanged()
             } else {
                 Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    private fun configureListAdapter() {
+        chatListAdapter = ChatListAdapter(this, messages)
+        chatList.adapter = chatListAdapter
+    }
+
     private fun addMessage(from: String, message: String) {
         Log.d(TAG, "addMessage: from: $from message: $message")
         messages.add("${from.substringBefore("@")}: $message")
-        messageAdapter?.notifyDataSetChanged()
-        chatList.smoothScrollToPosition(messages.size - 1)
+        chatListAdapter?.notifyDataSetChanged()
     }
 
     private fun initViews() {
@@ -128,12 +132,25 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "onRestoreInstanceState")
         savedInstanceState.getStringArrayList("messages")?.let {
             messages.addAll(it)
-            messageAdapter?.notifyDataSetChanged()
+            chatListAdapter?.notifyDataSetChanged()
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         xmppManager?.disconnect()
+    }
+}
+
+class ChatListAdapter(
+    private val context: Context,
+    private val messages: MutableList<String>,
+) : ArrayAdapter<String>(context, R.layout.row_chat, messages) {
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+        var view = convertView ?: View.inflate(context, R.layout.row_chat, null)
+        val chat = getItem(position)
+        val chatTextView = view.findViewById<TextView>(R.id.tv_chat)
+        chatTextView.text = chat
+        return view
     }
 }
