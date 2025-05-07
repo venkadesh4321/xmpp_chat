@@ -3,6 +3,7 @@ package com.venki.xmppdemo
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
@@ -14,6 +15,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import java.io.Serializable
 
 class MainActivity : ComponentActivity() {
     private val TAG = MainActivity::class.simpleName
@@ -28,7 +30,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var toEditText: EditText
     private lateinit var sendBtn: Button
 
-    private val messages = mutableListOf<String>()
+    private val chats = mutableListOf<Chat>()
     private var isConnected = false
 
     private var xmppManager: XmppManager? = null
@@ -57,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
                         xmppManager?.setupIncomingMessageListener { from, message ->
                             runOnUiThread {
-                                addMessage(from, message)
+                                addMessage(message, false)
                             }
                         }
                     } else {
@@ -87,12 +89,14 @@ class MainActivity : ComponentActivity() {
             }
 
             if (isConnected) {
-                messages.add("Me to $recipient: $message")
+                val chat = Chat(message, true)
+                Log.d(TAG, "send - $chat")
+                addMessage(message, true)
                 lifecycleScope.launch {
                     xmppManager?.sendMessage(recipient, message)
                 }
                 messageEditText.text.clear()
-                chatListAdapter?.notifyDataSetChanged()
+
             } else {
                 Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show()
             }
@@ -100,13 +104,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun configureListAdapter() {
-        chatListAdapter = ChatListAdapter(this, messages)
+        chatListAdapter = ChatListAdapter(this, chats)
         chatList.adapter = chatListAdapter
     }
 
-    private fun addMessage(from: String, message: String) {
-        Log.d(TAG, "addMessage: from: $from message: $message")
-        messages.add("${from.substringBefore("@")}: $message")
+    private fun addMessage(message: String, isSent: Boolean) {
+        val chat = Chat(message, isSent)
+        chats.add(chat)
         chatListAdapter?.notifyDataSetChanged()
     }
 
@@ -124,14 +128,16 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Log.d(TAG, "onSaveInstanceState:")
-        outState.putStringArrayList("messages", ArrayList(messages))
+        outState.putSerializable("chats", ArrayList(chats))
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         Log.d(TAG, "onRestoreInstanceState")
-        savedInstanceState.getStringArrayList("messages")?.let {
-            messages.addAll(it)
+        val restoredChats = savedInstanceState.getSerializable("chats") as? ArrayList<Chat>
+        restoredChats?.let {
+            chats.clear()
+            chats.addAll(it)
             chatListAdapter?.notifyDataSetChanged()
         }
     }
@@ -142,15 +148,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+data class Chat(var message: String, var isSent: Boolean) : Serializable
+
 class ChatListAdapter(
     private val context: Context,
-    private val messages: MutableList<String>,
-) : ArrayAdapter<String>(context, R.layout.row_chat, messages) {
+    private val chats: MutableList<Chat>,
+) : ArrayAdapter<Chat>(context, R.layout.row_chat, chats) {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        var view = convertView ?: View.inflate(context, R.layout.row_chat, null)
+        var view = convertView ?: LayoutInflater.from(context).inflate(R.layout.row_chat, null)
         val chat = getItem(position)
+
         val chatTextView = view.findViewById<TextView>(R.id.tv_chat)
-        chatTextView.text = chat
+        chatTextView.textAlignment =
+            if (chat?.isSent!!) View.TEXT_ALIGNMENT_TEXT_END else View.TEXT_ALIGNMENT_TEXT_START
+
+        chatTextView.text = chat.message
         return view
     }
 }
