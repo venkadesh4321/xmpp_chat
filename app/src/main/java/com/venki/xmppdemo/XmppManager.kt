@@ -9,43 +9,61 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration
 import org.jxmpp.jid.impl.JidCreate
 
-class XmppManager {
+object XmppManager {
     private val TAG = XmppManager::class.simpleName
 
     private val hostName = "siruthuli.duckdns.org"
     private val domain = "siruthuli.duckdns.org"
     private val port = 5222
-    private var connection: XMPPTCPConnection? = null
+    private var xmppConnection: XMPPTCPConnection? = null
 
-    suspend fun connect(userName: String, password: String): Boolean {
+    suspend fun connect() {
         return withContext(Dispatchers.IO) {
             try {
+                if (xmppConnection?.isConnected == true) {
+                    Log.d(TAG, "Already connected")
+                    return@withContext
+                }
                 val config = XMPPTCPConnectionConfiguration.builder()
                     .setXmppDomain(domain)
                     .setHost(hostName)
                     .setPort(port)
                     .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
-                    .setUsernameAndPassword(userName, password)
                     .build()
 
-                connection = XMPPTCPConnection(config)
+                xmppConnection = XMPPTCPConnection(config)
                 Log.d(TAG, "Trying to connect...")
-                connection?.connect()
-                Log.d(TAG, "Connected to server: ${connection?.host}")
-                connection?.login()
-                Log.d(TAG, "logged in in as {$userName}")
-                true
+                xmppConnection?.connect()
+                Log.d(TAG, "Connected to server: ${xmppConnection?.host}")
             } catch (e: Exception) {
                 Log.e(TAG, "Connection failed: ${e.message}")
-                false
             }
         }
     }
 
-    suspend fun sendMessage(to: String, messageBody: String) {
+    suspend fun login(userName: String, password: String) {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (xmppConnection?.isConnected != true) {
+                    Log.e(TAG, "Not connected yet!")
+                    return@withContext
+                }
+                if (xmppConnection?.isAuthenticated == true) {
+                    Log.d(TAG, "Already logged in")
+                    return@withContext
+                }
+                xmppConnection?.login(userName, password)
+                Log.d(TAG, "Logged in as: ${xmppConnection?.user}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Login failed: ${e.message}")
+            }
+        }
+    }
+
+    fun sendMessage(to: String, messageBody: String) {
         try {
-            val chatManager = ChatManager.getInstanceFor(connection)
-            val finalJid = if(to.contains("@")) to else "$to@$domain"
+            val chatManager = ChatManager.getInstanceFor(xmppConnection)
+            val finalJid = if (to.contains("@")) to else "$to@$domain"
             val jid = JidCreate.entityBareFrom(finalJid)
             Log.d("XmppManager", "Message sent to $to: $messageBody")
             val chat = chatManager.chatWith(jid)
@@ -56,15 +74,18 @@ class XmppManager {
     }
 
     fun setupIncomingMessageListener(onNewMessage: (from: String, message: String) -> Unit) {
-        val chatManager = ChatManager.getInstanceFor(connection)
+        val chatManager = ChatManager.getInstanceFor(xmppConnection)
         chatManager.addIncomingListener { from, message, chat ->
             Log.d("XmppManager", "New message from $from: ${message.body}")
             onNewMessage(from.asBareJid().toString(), message.body)
         }
     }
 
+    fun isConnected(): Boolean = xmppConnection?.isConnected == true
+    fun isAuthenticated(): Boolean = xmppConnection?.isAuthenticated == true
+
     fun disconnect() {
-        connection?.disconnect()
+        xmppConnection?.disconnect()
         Log.d(TAG, "disconnected")
     }
 }

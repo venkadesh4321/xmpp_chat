@@ -20,10 +20,10 @@ import java.io.Serializable
 class MainActivity : ComponentActivity() {
     private val TAG = MainActivity::class.simpleName
 
-    private lateinit var submitBtn: Button
     private lateinit var userNameEditText: EditText
     private lateinit var passwordEditText: EditText
     private lateinit var statusTextView: TextView
+    private lateinit var loginBtn: Button
 
     private lateinit var chatList: ListView
     private lateinit var messageEditText: EditText
@@ -31,9 +31,6 @@ class MainActivity : ComponentActivity() {
     private lateinit var sendBtn: Button
 
     private val chats = mutableListOf<Chat>()
-    private var isConnected = false
-
-    private var xmppManager: XmppManager? = null
     private var chatListAdapter: ChatListAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,33 +39,18 @@ class MainActivity : ComponentActivity() {
 
         initViews()
         configureListAdapter()
-        xmppManager = XmppManager()
+        connectSocket()
 
-        submitBtn.setOnClickListener {
+        statusTextView.text = if (XmppManager.isConnected()) "Connected" else "Not Connected"
+
+        loginBtn.setOnClickListener {
             val userName = userNameEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
 
             if (userName.isNotEmpty() && password.isNotEmpty()) {
                 Log.d(TAG, "onCreate: user name - $userName password - $password")
                 lifecycleScope.launch {
-                    isConnected = xmppManager?.connect(userName, password)!!
-                    if (isConnected) {
-                        Log.d(TAG, "onCreate: connected")
-                        statusTextView.text = "Connected"
-                        Toast.makeText(this@MainActivity, "Connected", Toast.LENGTH_SHORT).show()
-
-                        xmppManager?.setupIncomingMessageListener { from, message ->
-                            runOnUiThread {
-                                val chat = Chat(message, false)
-                                addChat(chat)
-                            }
-                        }
-                    } else {
-                        Log.d(TAG, "onCreate: not connected")
-                        statusTextView.text = "Not connected"
-                        Toast.makeText(this@MainActivity, "Connection failed", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+                    XmppManager.login(userName, password)
                 }
             } else {
                 Toast.makeText(this, "Enter username and password", Toast.LENGTH_SHORT).show()
@@ -89,12 +71,12 @@ class MainActivity : ComponentActivity() {
                 return@setOnClickListener
             }
 
-            if (isConnected) {
+            if (XmppManager.isConnected()) {
                 val chat = Chat(message, true)
                 Log.d(TAG, "send - $chat")
                 addChat(chat)
                 lifecycleScope.launch {
-                    xmppManager?.sendMessage(recipient, message)
+                    XmppManager.sendMessage(recipient, message)
                 }
                 messageEditText.text.clear()
 
@@ -115,7 +97,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initViews() {
-        submitBtn = findViewById(R.id.submit_btn)
+        loginBtn = findViewById(R.id.login_btn)
         userNameEditText = findViewById(R.id.user_name_edit_text)
         passwordEditText = findViewById(R.id.password_edit_text)
         statusTextView = findViewById(R.id.tv_status)
@@ -123,6 +105,26 @@ class MainActivity : ComponentActivity() {
         messageEditText = findViewById(R.id.et_message)
         toEditText = findViewById(R.id.et_recipient)
         sendBtn = findViewById(R.id.btn_send)
+    }
+
+    private fun connectSocket() {
+        lifecycleScope.launch {
+            XmppManager.connect()
+
+            if (XmppManager.isConnected()) {
+                Log.d(TAG, "onCreate: connected")
+                statusTextView.text = "Connected"
+                XmppManager.setupIncomingMessageListener { from, message ->
+                    runOnUiThread {
+                        val chat = Chat(message, false)
+                        addChat(chat)
+                    }
+                }
+            } else {
+                Log.d(TAG, "onCreate: not connected")
+                statusTextView.text = "Not connected"
+            }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -140,11 +142,6 @@ class MainActivity : ComponentActivity() {
             chats.addAll(it)
             chatListAdapter?.notifyDataSetChanged()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        xmppManager?.disconnect()
     }
 }
 
