@@ -83,6 +83,7 @@ object XmppManager {
 
     fun isConnected(): Boolean = xmppConnection?.isConnected == true
     fun isAuthenticated(): Boolean = xmppConnection?.isAuthenticated == true
+    fun getUser(): String? = xmppConnection?.user?.asEntityBareJidIfPossible()?.toString()
 
     fun disconnect() {
         xmppConnection?.disconnect()

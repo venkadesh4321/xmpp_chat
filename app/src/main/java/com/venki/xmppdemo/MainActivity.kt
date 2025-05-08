@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
         configureListAdapter()
         connectSocket()
 
-        statusTextView.text = if (XmppManager.isConnected()) "Connected" else "Not Connected"
+        statusTextView.text = if (XmppManager.isAuthenticated()) "Logged in as ${XmppManager.getUser()?.substringBefore("@")}" else "Not logged in"
 
         loginBtn.setOnClickListener {
             val userName = userNameEditText.text.toString().trim()
@@ -50,7 +50,17 @@ class MainActivity : ComponentActivity() {
             if (userName.isNotEmpty() && password.isNotEmpty()) {
                 Log.d(TAG, "onCreate: user name - $userName password - $password")
                 lifecycleScope.launch {
+                    if (!XmppManager.isConnected()) {
+                        connectSocket()
+                    }
                     XmppManager.login(userName, password)
+                    if (XmppManager.isAuthenticated()) {
+                        Log.d(TAG, "onCreate: authenticated")
+                        statusTextView.text = "Welcome $userName to VChat"
+                    } else {
+                        Log.d(TAG, "onCreate: not authenticated")
+                        statusTextView.text = "Not logged in"
+                    }
                 }
             } else {
                 Toast.makeText(this, "Enter username and password", Toast.LENGTH_SHORT).show()
@@ -71,7 +81,7 @@ class MainActivity : ComponentActivity() {
                 return@setOnClickListener
             }
 
-            if (XmppManager.isConnected()) {
+            if (XmppManager.isAuthenticated()) {
                 val chat = Chat(message, true)
                 Log.d(TAG, "send - $chat")
                 addChat(chat)
@@ -79,9 +89,8 @@ class MainActivity : ComponentActivity() {
                     XmppManager.sendMessage(recipient, message)
                 }
                 messageEditText.text.clear()
-
             } else {
-                Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -113,7 +122,6 @@ class MainActivity : ComponentActivity() {
 
             if (XmppManager.isConnected()) {
                 Log.d(TAG, "onCreate: connected")
-                statusTextView.text = "Connected"
                 XmppManager.setupIncomingMessageListener { from, message ->
                     runOnUiThread {
                         val chat = Chat(message, false)
@@ -122,7 +130,6 @@ class MainActivity : ComponentActivity() {
                 }
             } else {
                 Log.d(TAG, "onCreate: not connected")
-                statusTextView.text = "Not connected"
             }
         }
     }
