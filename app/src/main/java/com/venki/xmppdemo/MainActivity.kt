@@ -41,7 +41,9 @@ class MainActivity : ComponentActivity() {
         configureListAdapter()
         connectSocket()
 
-        statusTextView.text = if (XmppManager.isAuthenticated()) "Logged in as ${XmppManager.getUser()?.substringBefore("@")}" else "Not logged in"
+        statusTextView.text = if (XmppManager.isAuthenticated()) "Logged in as ${
+            XmppManager.getUser()?.substringBefore("@")
+        }" else "Not logged in"
 
         loginBtn.setOnClickListener {
             val userName = userNameEditText.text.toString().trim()
@@ -59,7 +61,7 @@ class MainActivity : ComponentActivity() {
                         statusTextView.text = "Welcome $userName to VChat"
                     } else {
                         Log.d(TAG, "onCreate: not authenticated")
-                        statusTextView.text = "Not logged in"
+                        statusTextView.text = "Not Failed. Try again."
                     }
                 }
             } else {
@@ -77,7 +79,7 @@ class MainActivity : ComponentActivity() {
             }
 
             if (message.isEmpty()) {
-                Toast.makeText(this, "Enter message", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Type something", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
