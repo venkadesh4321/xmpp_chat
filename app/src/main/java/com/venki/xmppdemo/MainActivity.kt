@@ -13,17 +13,18 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.venki.xmppdemo.repository.XmppRepository
+import com.venki.xmppdemo.viewmodel.MainViewModel
+import com.venki.xmppdemo.viewmodel.MainViewModelFactory
 import kotlinx.coroutines.launch
 import java.io.Serializable
 
 class MainActivity : ComponentActivity() {
     private val TAG = MainActivity::class.simpleName
 
+    private lateinit var mainViewModel: MainViewModel
     private lateinit var userNameEditText: EditText
     private lateinit var passwordEditText: EditText
     private lateinit var statusTextView: TextView
@@ -35,40 +36,20 @@ class MainActivity : ComponentActivity() {
     private lateinit var sendBtn: Button
 
     private var chatListAdapter: ChatListAdapter? = null
-    private lateinit var mainViewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        initViewModelAndObserver()
         initViews()
-        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
-        configureListAdapter()
-        connectSocket()
-
-        statusTextView.text = if (XmppManager.isAuthenticated()) "Logged in as ${
-            XmppManager.getUser()?.substringBefore("@")
-        }" else "Not logged in"
 
         loginBtn.setOnClickListener {
             val userName = userNameEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
 
             if (userName.isNotEmpty() && password.isNotEmpty()) {
-                Log.d(TAG, "onCreate: user name - $userName password - $password")
-                lifecycleScope.launch {
-                    if (!XmppManager.isConnected()) {
-                        connectSocket()
-                    }
-                    XmppManager.login(userName, password)
-                    if (XmppManager.isAuthenticated()) {
-                        Log.d(TAG, "onCreate: authenticated")
-                        statusTextView.text = "Welcome $userName to VChat"
-                    } else {
-                        Log.d(TAG, "onCreate: not authenticated")
-                        statusTextView.text = "Not Failed. Try again."
-                    }
-                }
+                mainViewModel.connectAndLogin(userName, password)
             } else {
                 Toast.makeText(this, "Enter username and password", Toast.LENGTH_SHORT).show()
             }
@@ -89,12 +70,7 @@ class MainActivity : ComponentActivity() {
             }
 
             if (XmppManager.isAuthenticated()) {
-                val chat = Chat(message, true)
-                Log.d(TAG, "send - $chat")
-                mainViewModel.addChat(chat)
-                lifecycleScope.launch {
-                    XmppManager.sendMessage(recipient, message)
-                }
+                mainViewModel.sendMessage(recipient, message)
                 messageEditText.text.clear()
             } else {
                 Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
@@ -102,12 +78,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun configureListAdapter() {
-        chatListAdapter = ChatListAdapter(this, mutableListOf())
-        chatList.adapter = chatListAdapter
+    private fun initViewModelAndObserver() {
+        val xmppRepository = XmppRepository()
+        mainViewModel =
+            ViewModelProvider(this, MainViewModelFactory(xmppRepository))[MainViewModel::class.java]
 
         mainViewModel.chats.observe(this) {
             chatListAdapter?.updateChats(it)
+        }
+
+        mainViewModel.status.observe(this) {
+            statusTextView.text = it
         }
     }
 
@@ -120,6 +101,9 @@ class MainActivity : ComponentActivity() {
         messageEditText = findViewById(R.id.et_message)
         toEditText = findViewById(R.id.et_recipient)
         sendBtn = findViewById(R.id.btn_send)
+
+        chatListAdapter = ChatListAdapter(this, mutableListOf())
+        chatList.adapter = chatListAdapter
     }
 
     private fun connectSocket() {
@@ -165,17 +149,5 @@ class ChatListAdapter(
             chats.addAll(it)
             notifyDataSetChanged()
         }
-    }
-}
-
-class MainViewModel : ViewModel() {
-    private var _chats = MutableLiveData<MutableList<Chat>>()
-    val chats: LiveData<MutableList<Chat>> = _chats
-
-    fun addChat(chat: Chat) {
-        Log.d("MainModel", "addChat: $chat")
-        val updatedList = _chats.value?.toMutableList() ?: mutableListOf()
-        updatedList.add(chat)
-        _chats.postValue(updatedList)
     }
 }

@@ -61,21 +61,23 @@ object XmppManager {
         }
     }
 
-    fun sendMessage(to: String, messageBody: String) {
-        try {
-            val chatManager = ChatManager.getInstanceFor(xmppConnection)
-            val finalJid = if (to.contains("@")) to else "$to@$domain"
-            val jid = JidCreate.entityBareFrom(finalJid)
-            Log.d("XmppManager", "Message sent to $to: $messageBody")
-            val chat = chatManager.chatWith(jid)
-            chat.send(messageBody)
-        } catch (e: Exception) {
-            Log.e("XmppManager", "Failed to send message: ${e.message}")
+    suspend fun sendMessage(to: String, messageBody: String) {
+        return withContext(Dispatchers.IO) {
+            try {
+                val chatManager = ChatManager.getInstanceFor(xmppConnection)
+                val finalJid = if (to.contains("@")) to else "$to@$domain"
+                val jid = JidCreate.entityBareFrom(finalJid)
+                Log.d("XmppManager", "Message sent to $to: $messageBody")
+                val chat = chatManager.chatWith(jid)
+                chat.send(messageBody)
+            } catch (e: Exception) {
+                Log.e("XmppManager", "Failed to send message: ${e.message}")
+            }
         }
     }
 
     fun setupIncomingMessageListener(onNewMessage: (from: String, message: String) -> Unit) {
-        if(!isIncomingMessageListenerSet) {
+        if (!isIncomingMessageListenerSet) {
             val chatManager = ChatManager.getInstanceFor(xmppConnection)
             chatManager.addIncomingListener { from, message, chat ->
                 Log.d("XmppManager", "New message from $from: ${message.body}")
