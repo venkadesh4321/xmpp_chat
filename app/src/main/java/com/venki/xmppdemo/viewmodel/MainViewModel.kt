@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 class MainViewModel(
     private val repository: XmppRepository
 ) : ViewModel() {
+    private val TAG = MainViewModel::class.simpleName
+
     private var _chats = MutableLiveData<MutableList<Chat>>(mutableListOf())
     val chats: LiveData<MutableList<Chat>> = _chats
 
@@ -19,7 +21,7 @@ class MainViewModel(
     val status: LiveData<String> = _status
 
     fun addChat(chat: Chat) {
-        Log.d("MainModel", "addChat: $chat")
+        Log.d(TAG, "addChat: $chat")
         val updatedList = _chats.value?.toMutableList() ?: mutableListOf()
         updatedList.add(chat)
         _chats.postValue(updatedList)
@@ -29,14 +31,14 @@ class MainViewModel(
         viewModelScope.launch {
             if (repository.connect()) {
                 repository.setupIncomingMessageListener { from, message ->
-                    Log.d("MainModel", "Received message from $from: $message")
+                    Log.d(TAG, "Received message from $from: $message")
                     addChat(Chat(message, false))
                 }
                 if (repository.login(userName, password)) {
-                    Log.d("MainModel", "Logged in successfully")
+                    Log.d(TAG, "Logged in successfully")
                     _status.postValue("Logged in successfully")
                 } else {
-                    Log.d("MainModel", "Login failed")
+                    Log.d(TAG, "Login failed")
                     _status.postValue("Login failed")
                 }
             } else {
@@ -50,9 +52,5 @@ class MainViewModel(
         viewModelScope.launch {
             repository.sendMessage(recipient, message)
         }
-    }
-
-    fun setupIncomingMessageListener() {
-
     }
 }

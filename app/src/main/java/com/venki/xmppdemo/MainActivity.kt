@@ -1,12 +1,6 @@
 package com.venki.xmppdemo
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
@@ -14,12 +8,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.venki.xmppdemo.repository.XmppRepository
 import com.venki.xmppdemo.viewmodel.MainViewModel
 import com.venki.xmppdemo.viewmodel.MainViewModelFactory
-import kotlinx.coroutines.launch
-import java.io.Serializable
 
 class MainActivity : ComponentActivity() {
     private val TAG = MainActivity::class.simpleName
@@ -104,50 +95,5 @@ class MainActivity : ComponentActivity() {
 
         chatListAdapter = ChatListAdapter(this, mutableListOf())
         chatList.adapter = chatListAdapter
-    }
-
-    private fun connectSocket() {
-        lifecycleScope.launch {
-            XmppManager.connect()
-
-            if (XmppManager.isConnected()) {
-                Log.d(TAG, "onCreate: connected")
-                XmppManager.setupIncomingMessageListener { from, message ->
-                    runOnUiThread {
-                        val chat = Chat(message, false)
-                        mainViewModel.addChat(chat)
-                    }
-                }
-            } else {
-                Log.d(TAG, "onCreate: not connected")
-            }
-        }
-    }
-}
-
-data class Chat(var message: String, var isSent: Boolean) : Serializable
-
-class ChatListAdapter(
-    private val context: Context,
-    private val chats: MutableList<Chat>,
-) : ArrayAdapter<Chat>(context, R.layout.row_chat, chats) {
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        var view = convertView ?: LayoutInflater.from(context).inflate(R.layout.row_chat, null)
-        val chat = getItem(position)
-
-        val chatTextView = view.findViewById<TextView>(R.id.tv_chat)
-        chatTextView.textAlignment =
-            if (chat?.isSent!!) View.TEXT_ALIGNMENT_TEXT_END else View.TEXT_ALIGNMENT_TEXT_START
-
-        chatTextView.text = chat.message
-        return view
-    }
-
-    fun updateChats(it: MutableList<Chat>?) {
-        it?.let {
-            chats.clear()
-            chats.addAll(it)
-            notifyDataSetChanged()
-        }
     }
 }
