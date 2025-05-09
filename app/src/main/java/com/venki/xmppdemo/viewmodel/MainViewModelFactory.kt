@@ -6,7 +6,7 @@ import com.venki.xmppdemo.repository.XmppRepository
 
 class MainViewModelFactory(
     private val xmppRepository: XmppRepository
-): ViewModelProvider.Factory {
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return MainViewModel(xmppRepository) as T
     }

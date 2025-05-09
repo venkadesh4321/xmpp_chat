@@ -5,7 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.venki.xmppdemo.Chat
+import com.venki.xmppdemo.model.Chat
 import com.venki.xmppdemo.repository.XmppRepository
 import kotlinx.coroutines.launch
 

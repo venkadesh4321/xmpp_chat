@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import com.venki.xmppdemo.model.Chat
 
 class ChatListAdapter(
     private val context: Context,
