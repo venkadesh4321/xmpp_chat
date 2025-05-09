@@ -16,6 +16,7 @@ object XmppManager {
     private val domain = "siruthuli.duckdns.org"
     private val port = 5222
     private var xmppConnection: XMPPTCPConnection? = null
+    private var isIncomingMessageListenerSet = false
 
     suspend fun connect() {
         return withContext(Dispatchers.IO) {
@@ -74,10 +75,13 @@ object XmppManager {
     }
 
     fun setupIncomingMessageListener(onNewMessage: (from: String, message: String) -> Unit) {
-        val chatManager = ChatManager.getInstanceFor(xmppConnection)
-        chatManager.addIncomingListener { from, message, chat ->
-            Log.d("XmppManager", "New message from $from: ${message.body}")
-            onNewMessage(from.asBareJid().toString(), message.body)
+        if(!isIncomingMessageListenerSet) {
+            val chatManager = ChatManager.getInstanceFor(xmppConnection)
+            chatManager.addIncomingListener { from, message, chat ->
+                Log.d("XmppManager", "New message from $from: ${message.body}")
+                onNewMessage(from.asBareJid().toString(), message.body)
+                isIncomingMessageListenerSet = true
+            }
         }
     }
 

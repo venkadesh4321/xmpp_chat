@@ -13,6 +13,10 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.io.Serializable
@@ -30,14 +34,15 @@ class MainActivity : ComponentActivity() {
     private lateinit var toEditText: EditText
     private lateinit var sendBtn: Button
 
-    private val chats = mutableListOf<Chat>()
     private var chatListAdapter: ChatListAdapter? = null
+    private lateinit var mainViewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         initViews()
+        mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         configureListAdapter()
         connectSocket()
 
@@ -86,7 +91,7 @@ class MainActivity : ComponentActivity() {
             if (XmppManager.isAuthenticated()) {
                 val chat = Chat(message, true)
                 Log.d(TAG, "send - $chat")
-                addChat(chat)
+                mainViewModel.addChat(chat)
                 lifecycleScope.launch {
                     XmppManager.sendMessage(recipient, message)
                 }
@@ -98,13 +103,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun configureListAdapter() {
-        chatListAdapter = ChatListAdapter(this, chats)
+        chatListAdapter = ChatListAdapter(this, mutableListOf())
         chatList.adapter = chatListAdapter
-    }
 
-    private fun addChat(chat: Chat) {
-        chats.add(chat)
-        chatListAdapter?.notifyDataSetChanged()
+        mainViewModel.chats.observe(this) {
+            chatListAdapter?.updateChats(it)
+        }
     }
 
     private fun initViews() {
@@ -127,29 +131,12 @@ class MainActivity : ComponentActivity() {
                 XmppManager.setupIncomingMessageListener { from, message ->
                     runOnUiThread {
                         val chat = Chat(message, false)
-                        addChat(chat)
+                        mainViewModel.addChat(chat)
                     }
                 }
             } else {
                 Log.d(TAG, "onCreate: not connected")
             }
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        Log.d(TAG, "onSaveInstanceState:")
-        outState.putSerializable("chats", ArrayList(chats))
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        Log.d(TAG, "onRestoreInstanceState")
-        val restoredChats = savedInstanceState.getSerializable("chats") as? ArrayList<Chat>
-        restoredChats?.let {
-            chats.clear()
-            chats.addAll(it)
-            chatListAdapter?.notifyDataSetChanged()
         }
     }
 }
@@ -170,5 +157,25 @@ class ChatListAdapter(
 
         chatTextView.text = chat.message
         return view
+    }
+
+    fun updateChats(it: MutableList<Chat>?) {
+        it?.let {
+            chats.clear()
+            chats.addAll(it)
+            notifyDataSetChanged()
+        }
+    }
+}
+
+class MainViewModel : ViewModel() {
+    private var _chats = MutableLiveData<MutableList<Chat>>()
+    val chats: LiveData<MutableList<Chat>> = _chats
+
+    fun addChat(chat: Chat) {
+        Log.d("MainModel", "addChat: $chat")
+        val updatedList = _chats.value?.toMutableList() ?: mutableListOf()
+        updatedList.add(chat)
+        _chats.postValue(updatedList)
     }
 }
