@@ -13,12 +13,13 @@ class ChatListAdapter(
     private val chats: MutableList<Chat>,
 ) : ArrayAdapter<Chat>(context, R.layout.row_chat, chats) {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        var view = convertView ?: LayoutInflater.from(context).inflate(R.layout.row_chat, null)
         val chat = getItem(position)
+        val layoutRes = if (chat?.isSent!!) R.layout.row_sent else R.layout.row_receive
+        val view = LayoutInflater.from(context).inflate(layoutRes, null, false)
 
         val chatTextView = view.findViewById<TextView>(R.id.tv_chat)
         chatTextView.textAlignment =
-            if (chat?.isSent!!) View.TEXT_ALIGNMENT_TEXT_END else View.TEXT_ALIGNMENT_TEXT_START
+            if (chat.isSent) View.TEXT_ALIGNMENT_TEXT_END else View.TEXT_ALIGNMENT_TEXT_START
 
         chatTextView.text = chat.message
         return view
