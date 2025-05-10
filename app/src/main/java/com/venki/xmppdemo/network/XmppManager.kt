@@ -44,9 +44,6 @@ object XmppManager {
                 onStatusChangedCallback = onStatusChanged
                 addConnectionListener()
 
-                // Enable auto-reconnection
-                ReconnectionManager.getInstanceFor(xmppConnection).enableAutomaticReconnection()
-
                 Log.d(TAG, "Trying to connect...")
                 xmppConnection?.connect()
                 Log.d(TAG, "Connected to server: ${xmppConnection?.host}")
