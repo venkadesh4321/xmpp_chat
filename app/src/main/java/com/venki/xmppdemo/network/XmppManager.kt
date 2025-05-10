@@ -1,9 +1,12 @@
-package com.venki.xmppdemo
+package com.venki.xmppdemo.network
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jivesoftware.smack.ConnectionConfiguration
+import org.jivesoftware.smack.ConnectionListener
+import org.jivesoftware.smack.ReconnectionManager
+import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.chat2.ChatManager
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration
@@ -17,8 +20,11 @@ object XmppManager {
     private val port = 5222
     private var xmppConnection: XMPPTCPConnection? = null
     private var isIncomingMessageListenerSet = false
+    private var connectionListener: ConnectionListener? = null
+    private var onStatusChangedCallback: ((String) -> Unit)? = null
+    private var reconnectionListener: ReconnectionManager? = null
 
-    suspend fun connect() {
+    suspend fun connect(onStatusChanged: ((String) -> Unit)? = null) {
         return withContext(Dispatchers.IO) {
             try {
                 if (xmppConnection?.isConnected == true) {
@@ -33,6 +39,14 @@ object XmppManager {
                     .build()
 
                 xmppConnection = XMPPTCPConnection(config)
+
+                // Set status callback
+                onStatusChangedCallback = onStatusChanged
+                addConnectionListener()
+
+                // Enable auto-reconnection
+                ReconnectionManager.getInstanceFor(xmppConnection).enableAutomaticReconnection()
+
                 Log.d(TAG, "Trying to connect...")
                 xmppConnection?.connect()
                 Log.d(TAG, "Connected to server: ${xmppConnection?.host}")
@@ -54,6 +68,9 @@ object XmppManager {
                     return@withContext
                 }
                 xmppConnection?.login(userName, password)
+                if (xmppConnection?.isAuthenticated == true) {
+                    ReconnectionManager.getInstanceFor(xmppConnection).enableAutomaticReconnection()
+                }
                 Log.d(TAG, "Logged in as: ${xmppConnection?.user}")
             } catch (e: Exception) {
                 Log.e(TAG, "Login failed: ${e.message}")
@@ -85,6 +102,40 @@ object XmppManager {
                 isIncomingMessageListenerSet = true
             }
         }
+    }
+
+    private fun addConnectionListener() {
+        if (connectionListener == null) {
+            connectionListener = object : ConnectionListener {
+                override fun connecting(connection: XMPPConnection?) {
+                    Log.d(TAG, "Connecting")
+                    onStatusChangedCallback?.invoke("Connecting")
+                }
+
+                override fun connected(connection: XMPPConnection?) {
+                    Log.d(TAG, "Connected")
+                    onStatusChangedCallback?.invoke("Connected")
+                }
+
+                override fun authenticated(connection: XMPPConnection?, resumed: Boolean) {
+                    Log.d(TAG, "Authenticated")
+                    onStatusChangedCallback?.invoke("Authenticated")
+                }
+
+                override fun connectionClosed() {
+                    Log.d(TAG, "Connection closed")
+                    onStatusChangedCallback?.invoke("Disconnected")
+                }
+
+                override fun connectionClosedOnError(e: Exception?) {
+                    Log.d(TAG, "Connection closed on error: ${e?.message}")
+                    onStatusChangedCallback?.invoke("Disconnected (Error)")
+                }
+            }
+        }
+
+        // Only attach if connection object is ready
+        xmppConnection?.addConnectionListener(connectionListener!!)
     }
 
     fun isConnected(): Boolean = xmppConnection?.isConnected == true

@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.venki.xmppdemo.model.Chat
+import com.venki.xmppdemo.network.XmppManager
 import com.venki.xmppdemo.repository.XmppRepository
 import kotlinx.coroutines.launch
 
@@ -22,19 +23,27 @@ class MainViewModel(
 
     init {
         viewModelScope.launch {
-            if (repository.connect()) {
-                _status.postValue("Connected")
-                repository.setupIncomingMessageListener { from, message ->
-                    Log.d(TAG, "Received message from $from: $message")
-                    addChat(Chat(message, false))
+            connect()
+        }
+    }
+
+    private fun connect() {
+        viewModelScope.launch {
+            XmppManager.connect { status ->
+                _status.postValue(status)
+                if (status == "Connected") {
+                    repository.setupIncomingMessageListener(
+                        onMessageReceived = { from, message ->
+                            Log.d(TAG, "Message received from $from: $message")
+                            addChat(Chat(message, false))
+                        }
+                    )
                 }
-            } else {
-                _status.postValue("Failed Connection")
             }
         }
     }
 
-    fun addChat(chat: Chat) {
+    private fun addChat(chat: Chat) {
         Log.d(TAG, "addChat: $chat")
         val updatedList = _chats.value?.toMutableList() ?: mutableListOf()
         updatedList.add(chat)
