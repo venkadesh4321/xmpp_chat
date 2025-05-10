@@ -95,5 +95,6 @@ class MainActivity : ComponentActivity() {
 
         chatListAdapter = ChatListAdapter(this, mutableListOf())
         chatList.adapter = chatListAdapter
+        chatList.selector = getDrawable(android.R.color.transparent)
     }
 }
