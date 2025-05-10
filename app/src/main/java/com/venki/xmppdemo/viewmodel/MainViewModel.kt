@@ -20,6 +20,20 @@ class MainViewModel(
     private var _status = MutableLiveData<String>()
     val status: LiveData<String> = _status
 
+    init {
+        viewModelScope.launch {
+            if (repository.connect()) {
+                _status.postValue("Connected")
+                repository.setupIncomingMessageListener { from, message ->
+                    Log.d(TAG, "Received message from $from: $message")
+                    addChat(Chat(message, false))
+                }
+            } else {
+                _status.postValue("Failed Connection")
+            }
+        }
+    }
+
     fun addChat(chat: Chat) {
         Log.d(TAG, "addChat: $chat")
         val updatedList = _chats.value?.toMutableList() ?: mutableListOf()
@@ -29,20 +43,12 @@ class MainViewModel(
 
     fun connectAndLogin(userName: String, password: String) {
         viewModelScope.launch {
-            if (repository.connect()) {
-                repository.setupIncomingMessageListener { from, message ->
-                    Log.d(TAG, "Received message from $from: $message")
-                    addChat(Chat(message, false))
-                }
-                if (repository.login(userName, password)) {
-                    Log.d(TAG, "Logged in successfully")
-                    _status.postValue("Logged in successfully")
-                } else {
-                    Log.d(TAG, "Login failed")
-                    _status.postValue("Login failed")
-                }
+            if (repository.login(userName, password)) {
+                Log.d(TAG, "Logged in successfully")
+                _status.postValue("Logged in successfully")
             } else {
-                _status.postValue("Failed Connection")
+                Log.d(TAG, "Login failed")
+                _status.postValue("Login failed")
             }
         }
     }
