@@ -13,7 +13,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.4"
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -57,11 +57,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.constraintlayout)
-
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.smack.android)
     implementation(libs.smack.tcp)
     implementation(libs.smack.extensions)
     implementation(libs.smack.debug)
+
     configurations.all {
         exclude(group = "xpp3", module = "xpp3")
         exclude(group = "xpp3", module = "xpp3_min")

@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
 import com.venki.xmppdemo.network.XmppManager
+import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
 import com.venki.xmppdemo.viewmodel.MainViewModel
 import com.venki.xmppdemo.viewmodel.MainViewModelFactory
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
             val password = passwordEditText.text.toString().trim()
 
             if (userName.isNotEmpty() && password.isNotEmpty()) {
-                mainViewModel.connectAndLogin(userName, password)
+                mainViewModel.connectAndLogin(applicationContext, userName, password)
             } else {
                 Toast.makeText(this, "Enter username and password", Toast.LENGTH_SHORT).show()
             }
@@ -72,8 +73,9 @@ class MainActivity : ComponentActivity() {
 
     private fun initViewModelAndObserver() {
         val xmppRepository = XmppRepository()
+        val userPreferenceRepository = UserPreferenceRepository()
         mainViewModel =
-            ViewModelProvider(this, MainViewModelFactory(xmppRepository))[MainViewModel::class.java]
+            ViewModelProvider(this, MainViewModelFactory(applicationContext, xmppRepository, userPreferenceRepository))[MainViewModel::class.java]
 
         mainViewModel.chats.observe(this) {
             chatListAdapter?.updateChats(it)

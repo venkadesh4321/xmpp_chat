@@ -1,5 +1,6 @@
 package com.venki.xmppdemo.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,11 +8,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.venki.xmppdemo.model.Chat
 import com.venki.xmppdemo.network.XmppManager
+import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val repository: XmppRepository
+    private val context: Context,
+    private val xmppRepository: XmppRepository,
+    private val userPreferenceRepository: UserPreferenceRepository
 ) : ViewModel() {
     private val TAG = MainViewModel::class.simpleName
 
@@ -32,12 +36,19 @@ class MainViewModel(
             XmppManager.connect { status ->
                 _status.postValue(status)
                 if (status == "Connected") {
-                    repository.setupIncomingMessageListener(
+                    xmppRepository.setupIncomingMessageListener(
                         onMessageReceived = { from, message ->
                             Log.d(TAG, "Message received from $from: $message")
                             addChat(Chat(message, false))
                         }
                     )
+                    viewModelScope.launch {
+                        val pair = userPreferenceRepository.getCredentials(context)
+                        if (pair.first.isNotEmpty() && pair.second.isNotEmpty()) {
+                            Log.d(TAG, "Credentials found")
+                            connectAndLogin(context, pair.first, pair.second)
+                        }
+                    }
                 }
             }
         }
@@ -50,10 +61,11 @@ class MainViewModel(
         _chats.postValue(updatedList)
     }
 
-    fun connectAndLogin(userName: String, password: String) {
+    fun connectAndLogin(context: Context, userName: String, password: String) {
         viewModelScope.launch {
-            if (repository.login(userName, password)) {
+            if (xmppRepository.login(userName, password)) {
                 Log.d(TAG, "Logged in successfully")
+                saveCredentials(context, userName, password)
                 _status.postValue("Logged in successfully")
             } else {
                 Log.d(TAG, "Login failed")
@@ -65,7 +77,19 @@ class MainViewModel(
     fun sendMessage(recipient: String, message: String) {
         addChat(Chat(message, true))
         viewModelScope.launch {
-            repository.sendMessage(recipient, message)
+            xmppRepository.sendMessage(recipient, message)
+        }
+    }
+
+    private fun saveCredentials(context: Context, userName: String, password: String) {
+        viewModelScope.launch {
+            userPreferenceRepository.saveCredentials(context, userName, password)
+        }
+    }
+
+    private fun clearCredentials(context: Context) {
+        viewModelScope.launch {
+            userPreferenceRepository.clearCredentials(context)
         }
     }
 }
