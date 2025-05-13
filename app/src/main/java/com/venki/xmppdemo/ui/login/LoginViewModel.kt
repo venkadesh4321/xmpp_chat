@@ -54,9 +54,6 @@ class LoginViewModel(
             if (pair.first.isNotEmpty()) {
                 Log.d(TAG, "Credentials found")
                 _status.postValue(true)
-            } else {
-                Log.d(TAG, "No credentials found")
-                _status.postValue(false)
             }
         }
     }

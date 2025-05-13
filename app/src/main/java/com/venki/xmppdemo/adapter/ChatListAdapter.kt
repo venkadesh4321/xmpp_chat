@@ -12,7 +12,7 @@ import com.venki.xmppdemo.model.Chat
 class ChatListAdapter(
     private val context: Context,
     private val chats: MutableList<Chat>,
-) : ArrayAdapter<Chat>(context, R.layout.row_chat, chats) {
+) : ArrayAdapter<Chat>(context, 0, chats) {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val chat = getItem(position)
         val layoutRes = if (chat?.isSent!!) R.layout.row_sent else R.layout.row_receive
