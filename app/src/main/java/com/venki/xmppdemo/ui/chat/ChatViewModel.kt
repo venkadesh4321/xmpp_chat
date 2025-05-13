@@ -25,15 +25,19 @@ class ChatViewModel(
     private var _status = MutableLiveData<String>()
     val status: LiveData<String> = _status
 
-    init {
+    fun connect() {
         viewModelScope.launch {
-            Log.d(TAG, "Connecting to XMPP server")
-            connect()
-        }
-    }
-
-    private fun connect() {
-        viewModelScope.launch {
+            if (XmppManager.isConnected()) {
+                Log.d(TAG, "Already connected")
+                _status.postValue("Connected")
+                xmppRepository.setupIncomingMessageListener(
+                    onMessageReceived = { from, message ->
+                        Log.d(TAG, "Message received from $from: $message")
+                        addChat(Chat(message, false))
+                    }
+                )
+                return@launch
+            }
             XmppManager.connect { status ->
                 _status.postValue(status)
                 if (status == "Connected") {
@@ -62,6 +66,16 @@ class ChatViewModel(
         _chats.postValue(updatedList)
     }
 
+    fun login() {
+        viewModelScope.launch {
+            val pair = userPreferenceRepository.getCredentials(context)
+            if (pair.first.isNotEmpty() && pair.second.isNotEmpty()) {
+                Log.d(TAG, "Credentials found")
+                connectAndLogin(context, pair.first, pair.second)
+            }
+        }
+    }
+
     fun connectAndLogin(context: Context, userName: String, password: String) {
         viewModelScope.launch {
             if (xmppRepository.login(userName, password)) {
@@ -73,6 +87,14 @@ class ChatViewModel(
                 _status.postValue("Login failed")
             }
         }
+    }
+
+    fun isConnected(): Boolean {
+        return xmppRepository.isConnected()
+    }
+
+    fun isAuthenticated(): Boolean {
+        return xmppRepository.isAuthenticated()
     }
 
     fun sendMessage(recipient: String, message: String) {

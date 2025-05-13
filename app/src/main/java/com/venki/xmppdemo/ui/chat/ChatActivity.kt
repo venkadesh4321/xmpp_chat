@@ -33,6 +33,11 @@ class ChatActivity : ComponentActivity() {
         initViews()
         initViewModelAndObserver()
 
+        chatViewModel.connect()
+        if (!chatViewModel.isAuthenticated()) {
+            chatViewModel.login()
+        }
+
         sendBtn.setOnClickListener {
             val message = messageEditText.text.toString().trim()
             val recipient = toEditText.text.toString().trim()
