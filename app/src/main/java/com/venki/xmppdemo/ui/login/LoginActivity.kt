@@ -54,6 +54,7 @@ class LoginActivity : ComponentActivity() {
             if (status) {
                 Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this, ChatActivity::class.java))
+                finish()
             } else {
                 Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
             }
