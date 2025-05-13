@@ -8,7 +8,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
-import com.venki.xmppdemo.ChatListAdapter
+import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.data.network.XmppManager
 import com.venki.xmppdemo.repository.UserPreferenceRepository

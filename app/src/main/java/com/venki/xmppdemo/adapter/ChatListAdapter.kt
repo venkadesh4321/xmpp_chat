@@ -1,4 +1,4 @@
-package com.venki.xmppdemo
+package com.venki.xmppdemo.adapter
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import com.venki.xmppdemo.R
 import com.venki.xmppdemo.model.Chat
 
 class ChatListAdapter(
