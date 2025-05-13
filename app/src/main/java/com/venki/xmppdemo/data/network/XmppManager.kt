@@ -1,4 +1,4 @@
-package com.venki.xmppdemo.network
+package com.venki.xmppdemo.data.network
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers

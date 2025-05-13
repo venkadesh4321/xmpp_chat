@@ -1,6 +1,6 @@
 package com.venki.xmppdemo.repository
 
-import com.venki.xmppdemo.network.XmppManager
+import com.venki.xmppdemo.data.network.XmppManager
 
 class XmppRepository {
     private val TAG = XmppRepository::class.simpleName

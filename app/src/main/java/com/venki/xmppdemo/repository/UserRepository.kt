@@ -1,7 +1,7 @@
 package com.venki.xmppdemo.repository
 
 import android.content.Context
-import com.venki.xmppdemo.network.UserPreferences
+import com.venki.xmppdemo.data.local.UserPreferences
 
 class UserPreferenceRepository {
     suspend fun saveCredentials(context: Context, userName: String, password: String) =
