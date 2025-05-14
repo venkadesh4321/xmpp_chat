@@ -14,6 +14,7 @@ smackAndroid = "4.4.6"
 smackDebug = "4.4.6"
 smackExtensions = "4.4.6"
 smackTcp = "4.4.6"
+recyclerview = "1.4.0"
 
 [libraries]
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
@@ -36,6 +37,7 @@ smack-android = { module = "org.igniterealtime.smack:smack-android", version.ref
 smack-debug = { module = "org.igniterealtime.smack:smack-debug", version.ref = "smackDebug" }
 smack-extensions = { module = "org.igniterealtime.smack:smack-extensions", version.ref = "smackExtensions" }
 smack-tcp = { module = "org.igniterealtime.smack:smack-tcp", version.ref = "smackTcp" }
+androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

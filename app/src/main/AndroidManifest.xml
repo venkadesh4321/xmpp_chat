@@ -28,6 +28,10 @@
         </activity>
 
         <activity
+            android:name=".ui.contacts.ContactsActivity"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
             android:name=".ui.chat.ChatActivity"
             android:windowSoftInputMode="adjustPan" />
     </application>

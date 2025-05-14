@@ -19,6 +19,10 @@ class XmppRepository {
         XmppManager.sendMessage(recipient, message)
     }
 
+   suspend fun getContacts(): MutableList<String> {
+       return XmppManager.getRoasterEntries().toMutableList()
+   }
+
     fun setupIncomingMessageListener(onMessageReceived: (String, String) -> Unit) {
         XmppManager.setupIncomingMessageListener(onMessageReceived)
     }

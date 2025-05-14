@@ -1,6 +1,8 @@
 package com.venki.xmppdemo.ui.chat
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
@@ -8,11 +10,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.data.network.XmppManager
 import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
+import kotlinx.coroutines.launch
 
 class ChatActivity : ComponentActivity() {
     private val TAG = ChatActivity::class.simpleName
@@ -81,12 +85,19 @@ class ChatActivity : ComponentActivity() {
         chatViewModel =
             ViewModelProvider(this, chatViewModelFactory)[ChatViewModel::class.java]
 
-        chatViewModel.chats.observe(this) {
+       /* chatViewModel.chats.observe(this) {
             chatListAdapter?.updateChats(it)
-        }
+        }*/
 
         chatViewModel.status.observe(this) {
             statusTextView.text = it
+        }
+
+        chatViewModel.contacts.observe(this) { contacts ->
+            Log.d(TAG, "contacts: $contacts")
+            val contactsAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, contacts)
+            chatList.adapter = contactsAdapter
+            contactsAdapter.notifyDataSetChanged()
         }
     }
 }

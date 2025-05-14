@@ -8,6 +8,7 @@ import org.jivesoftware.smack.ConnectionListener
 import org.jivesoftware.smack.ReconnectionManager
 import org.jivesoftware.smack.XMPPConnection
 import org.jivesoftware.smack.chat2.ChatManager
+import org.jivesoftware.smack.roster.Roster
 import org.jivesoftware.smack.tcp.XMPPTCPConnection
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration
 import org.jxmpp.jid.impl.JidCreate
@@ -36,6 +37,7 @@ object XmppManager {
                     .setHost(hostName)
                     .setPort(port)
                     .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
+                    .setSendPresence(true)
                     .build()
 
                 xmppConnection = XMPPTCPConnection(config)
@@ -67,6 +69,7 @@ object XmppManager {
                 xmppConnection?.login(userName, password)
                 if (xmppConnection?.isAuthenticated == true) {
                     ReconnectionManager.getInstanceFor(xmppConnection).enableAutomaticReconnection()
+                    Roster.setDefaultSubscriptionMode(Roster.SubscriptionMode.accept_all)
                 }
                 Log.d(TAG, "Logged in as: ${xmppConnection?.user}")
             } catch (e: Exception) {
@@ -133,6 +136,18 @@ object XmppManager {
 
         // Only attach if connection object is ready
         xmppConnection?.addConnectionListener(connectionListener!!)
+    }
+
+    fun getRoasterEntries() : List<String> {
+        val roster = Roster.getInstanceFor(xmppConnection)
+        if (!roster.isLoaded) {
+            try {
+                roster.reloadAndWait() // ✅ Make sure it's loaded
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to reload roster: ${e.message}")
+            }
+        }
+        return roster.entries.map { it.jid.asBareJid().toString() }
     }
 
     fun isConnected(): Boolean = xmppConnection?.isConnected == true

@@ -1,4 +1,4 @@
-package com.venki.xmppdemo.ui.chat
+    package com.venki.xmppdemo.ui.chat
 
 import android.content.Context
 import android.util.Log
@@ -24,6 +24,10 @@ class ChatViewModel(
 
     private var _status = MutableLiveData<String>()
     val status: LiveData<String> = _status
+
+    private val _contacts: MutableLiveData<MutableList<String>> = MutableLiveData<MutableList<String>>(mutableListOf())
+    val contacts: LiveData<MutableList<String>>
+        get() = _contacts
 
     fun connect() {
         viewModelScope.launch {
@@ -81,6 +85,7 @@ class ChatViewModel(
             if (xmppRepository.login(userName, password)) {
                 Log.d(TAG, "Logged in successfully")
                 saveCredentials(context, userName, password)
+                getContacts()
                 _status.postValue("Logged in successfully")
             } else {
                 Log.d(TAG, "Login failed")
@@ -89,6 +94,12 @@ class ChatViewModel(
         }
     }
 
+    fun getContacts() {
+        viewModelScope.launch {
+            val contacts = xmppRepository.getContacts()
+            _contacts.postValue(contacts)
+        }
+    }
     fun isConnected(): Boolean {
         return xmppRepository.isConnected()
     }
