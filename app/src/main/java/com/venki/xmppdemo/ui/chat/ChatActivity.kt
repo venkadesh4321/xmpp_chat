@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.R
+import com.venki.xmppdemo.data.network.XmppConnectionState
 import com.venki.xmppdemo.data.network.XmppManager
 import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
@@ -89,8 +90,17 @@ class ChatActivity : ComponentActivity() {
             chatListAdapter?.updateChats(it)
         }*/
 
-        chatViewModel.status.observe(this) {
-            statusTextView.text = it
+        lifecycleScope.launch {
+            chatViewModel.connectionState.collect { state ->
+                when (state) {
+                    is XmppConnectionState.Connecting -> showStatus("Connecting…")
+                    is XmppConnectionState.Connected -> showStatus("Connected")
+                    is XmppConnectionState.Authenticated -> showStatus("Authenticated")
+                    is XmppConnectionState.Disconnected -> showStatus("Disconnected")
+                    is XmppConnectionState.Error -> showStatus("Error: ${state.message}")
+                    else -> {}
+                }
+            }
         }
 
         chatViewModel.contacts.observe(this) { contacts ->
@@ -99,5 +109,9 @@ class ChatActivity : ComponentActivity() {
             chatList.adapter = contactsAdapter
             contactsAdapter.notifyDataSetChanged()
         }
+    }
+
+    fun showStatus(status: String) {
+        statusTextView.setText(status)
     }
 }

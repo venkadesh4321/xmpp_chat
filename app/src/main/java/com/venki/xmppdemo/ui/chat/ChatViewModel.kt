@@ -6,10 +6,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.venki.xmppdemo.data.network.XmppConnectionState
 import com.venki.xmppdemo.model.Chat
 import com.venki.xmppdemo.data.network.XmppManager
 import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ChatViewModel(
@@ -25,11 +29,22 @@ class ChatViewModel(
     private var _status = MutableLiveData<String>()
     val status: LiveData<String> = _status
 
+    private val _connectionState = MutableStateFlow<XmppConnectionState>(XmppConnectionState.Idle)
+    val connectionState: StateFlow<XmppConnectionState> = _connectionState.asStateFlow()
+
     private val _contacts: MutableLiveData<MutableList<String>> = MutableLiveData<MutableList<String>>(mutableListOf())
     val contacts: LiveData<MutableList<String>>
         get() = _contacts
 
-    fun connect() {
+    init {
+        viewModelScope.launch {
+            XmppManager.connectionState.collect {
+                _connectionState.value = it
+            }
+        }
+    }
+
+    /*fun connect() {
         viewModelScope.launch {
             if (XmppManager.isConnected()) {
                 Log.d(TAG, "Already connected")
@@ -62,7 +77,7 @@ class ChatViewModel(
             }
         }
     }
-
+*/
     private fun addChat(chat: Chat) {
         Log.d(TAG, "addChat: $chat")
         val updatedList = _chats.value?.toMutableList() ?: mutableListOf()

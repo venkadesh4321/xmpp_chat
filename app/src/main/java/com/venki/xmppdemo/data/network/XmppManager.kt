@@ -1,7 +1,12 @@
 package com.venki.xmppdemo.data.network
 
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jivesoftware.smack.ConnectionConfiguration
 import org.jivesoftware.smack.ConnectionListener
@@ -23,7 +28,8 @@ object XmppManager {
     private var isIncomingMessageListenerSet = false
     private var connectionListener: ConnectionListener? = null
     private var onStatusChangedCallback: ((String) -> Unit)? = null
-    private var reconnectionListener: ReconnectionManager? = null
+    private val _connectionState = MutableSharedFlow<XmppConnectionState>(replay = 1)
+    val connectionState: SharedFlow<XmppConnectionState> = _connectionState.asSharedFlow()
 
     suspend fun connect(onStatusChanged: ((String) -> Unit)? = null) {
         return withContext(Dispatchers.IO) {
@@ -45,6 +51,7 @@ object XmppManager {
                 // Set status callback
                 onStatusChangedCallback = onStatusChanged
                 addConnectionListener()
+                _connectionState.emit(XmppConnectionState.Connecting)
 
                 Log.d(TAG, "Trying to connect...")
                 xmppConnection?.connect()
@@ -68,10 +75,10 @@ object XmppManager {
                 }
                 xmppConnection?.login(userName, password)
                 if (xmppConnection?.isAuthenticated == true) {
+                    Log.d(TAG, "Logged in as: ${xmppConnection?.user}")
                     ReconnectionManager.getInstanceFor(xmppConnection).enableAutomaticReconnection()
                     Roster.setDefaultSubscriptionMode(Roster.SubscriptionMode.accept_all)
                 }
-                Log.d(TAG, "Logged in as: ${xmppConnection?.user}")
             } catch (e: Exception) {
                 Log.e(TAG, "Login failed: ${e.message}")
             }
@@ -109,27 +116,27 @@ object XmppManager {
             connectionListener = object : ConnectionListener {
                 override fun connecting(connection: XMPPConnection?) {
                     Log.d(TAG, "Connecting")
-                    onStatusChangedCallback?.invoke("Connecting")
+                    emitStatus(XmppConnectionState.Connecting)
                 }
 
                 override fun connected(connection: XMPPConnection?) {
                     Log.d(TAG, "Connected")
-                    onStatusChangedCallback?.invoke("Connected")
+                    emitStatus(XmppConnectionState.Connected)
                 }
 
                 override fun authenticated(connection: XMPPConnection?, resumed: Boolean) {
                     Log.d(TAG, "Authenticated")
-                    onStatusChangedCallback?.invoke("Authenticated")
+                    emitStatus(XmppConnectionState.Authenticated)
                 }
 
                 override fun connectionClosed() {
                     Log.d(TAG, "Connection closed")
-                    onStatusChangedCallback?.invoke("Disconnected")
+                    emitStatus(XmppConnectionState.Disconnected)
                 }
 
                 override fun connectionClosedOnError(e: Exception?) {
                     Log.d(TAG, "Connection closed on error: ${e?.message}")
-                    onStatusChangedCallback?.invoke("Disconnected (Error)")
+                    emitStatus(XmppConnectionState.Disconnected)
                 }
             }
         }
@@ -138,11 +145,17 @@ object XmppManager {
         xmppConnection?.addConnectionListener(connectionListener!!)
     }
 
+    private fun emitStatus(state: XmppConnectionState) {
+        CoroutineScope(Dispatchers.IO).launch {
+            _connectionState.emit(state)
+        }
+    }
+
     fun getRoasterEntries() : List<String> {
         val roster = Roster.getInstanceFor(xmppConnection)
         if (!roster.isLoaded) {
             try {
-                roster.reloadAndWait() // ✅ Make sure it's loaded
+                roster.reloadAndWait()
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to reload roster: ${e.message}")
             }
