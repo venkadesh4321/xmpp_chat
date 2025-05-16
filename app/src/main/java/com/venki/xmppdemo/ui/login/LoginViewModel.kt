@@ -20,21 +20,16 @@ class LoginViewModel(
     private val _status = MutableLiveData<Boolean>()
     val status: LiveData<Boolean> = _status
 
-    private val _isLoggedIn = MutableLiveData<Boolean>()
-    val isLoggedIn: LiveData<Boolean> = _isLoggedIn
-
     fun connectAndLogin(context: Context, userName: String, password: String) {
         viewModelScope.launch {
             XmppManager.connect()
-            viewModelScope.launch {
-                if (xmppRepository.login(userName, password)) {
-                    Log.d(TAG, "Logged in successfully")
-                    saveCredentials(context, userName, password)
-                    _status.postValue(true)
-                } else {
-                    Log.d(TAG, "Login failed")
-                    _status.postValue(false)
-                }
+            if (xmppRepository.login(userName, password)) {
+                Log.d(TAG, "Logged in successfully")
+                saveCredentials(context, userName, password)
+                _status.postValue(true)
+            } else {
+                Log.d(TAG, "Login failed")
+                _status.postValue(false)
             }
         }
     }
@@ -42,15 +37,6 @@ class LoginViewModel(
     private fun saveCredentials(context: Context, userName: String, password: String) {
         viewModelScope.launch {
             userPreferenceRepository.saveCredentials(context, userName, password)
-        }
-    }
-
-    fun isLoggedIn(context: Context) {
-        viewModelScope.launch {
-            if (userPreferenceRepository.isLoggedIn(context)) {
-                Log.d(TAG, "Credentials found")
-                _status.postValue(true)
-            }
         }
     }
 }

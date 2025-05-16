@@ -59,8 +59,6 @@ class LoginActivity : ComponentActivity() {
                 Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
             }
         }
-
-        loginViewModel.isLoggedIn(applicationContext);
     }
 
     private fun initViews() {

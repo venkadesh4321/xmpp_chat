@@ -76,6 +76,7 @@ object XmppManager {
                     Log.d(TAG, "Already logged in")
                     return@withContext
                 }
+                Log.d(TAG, "logging in")
                 xmppConnection?.login(userName, password)
                 if (xmppConnection?.isAuthenticated == true) {
                     Log.d(TAG, "Logged in as: ${xmppConnection?.user}")
