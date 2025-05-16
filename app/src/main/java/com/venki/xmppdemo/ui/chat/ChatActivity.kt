@@ -1,6 +1,7 @@
 package com.venki.xmppdemo.ui.chat
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
@@ -19,13 +20,15 @@ class ChatActivity : ComponentActivity() {
     private val TAG = ChatActivity::class.simpleName
 
     private lateinit var toEditText: EditText
-    private lateinit var statusTextView: TextView
+    private lateinit var recipientTextView: TextView
     private lateinit var chatList: ListView
     private lateinit var messageEditText: EditText
     private lateinit var sendBtn: Button
 
     private var chatListAdapter: ChatListAdapter? = null
     private lateinit var chatViewModel: ChatViewModel
+    private lateinit var recipient: String
+    private lateinit var jId: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,12 +37,16 @@ class ChatActivity : ComponentActivity() {
         initViews()
         initViewModelAndObserver()
 
+        recipient = intent.getStringExtra("recipient") ?: ""
+        jId = intent.getStringExtra("jid") ?: ""
+
+        recipientTextView.text = recipient
+
         sendBtn.setOnClickListener {
             val message = messageEditText.text.toString().trim()
-            val recipient = toEditText.text.toString().trim()
 
-            if (recipient.isEmpty()) {
-                Toast.makeText(this, "Enter recipient", Toast.LENGTH_SHORT).show()
+            if (jId.isEmpty()) {
+                Toast.makeText(this, "No recipient", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -48,14 +55,14 @@ class ChatActivity : ComponentActivity() {
                 return@setOnClickListener
             }
 
-            chatViewModel.sendMessage(recipient, message)
+            chatViewModel.sendMessage(jId, message)
             messageEditText.text.clear()
         }
     }
 
     private fun initViews() {
         toEditText = findViewById(R.id.et_recipient)
-        statusTextView = findViewById(R.id.tv_status)
+        recipientTextView = findViewById(R.id.tv_recipient)
         chatList = findViewById(R.id.ltv_chat)
         messageEditText = findViewById(R.id.et_message)
         sendBtn = findViewById(R.id.btn_send)
@@ -74,22 +81,5 @@ class ChatActivity : ComponentActivity() {
         chatViewModel.chats.observe(this) {
             chatListAdapter?.updateChats(it)
         }
-
-        lifecycleScope.launch {
-            chatViewModel.connectionState.collect { state ->
-                when (state) {
-                    is XmppConnectionState.Connecting -> showStatus("Connecting…")
-                    is XmppConnectionState.Connected -> showStatus("Connected")
-                    is XmppConnectionState.Authenticated -> showStatus("Authenticated")
-                    is XmppConnectionState.Disconnected -> showStatus("Disconnected")
-                    is XmppConnectionState.Error -> showStatus("Error: ${state.message}")
-                    else -> {}
-                }
-            }
-        }
-    }
-
-    fun showStatus(status: String) {
-        statusTextView.setText(status)
     }
 }

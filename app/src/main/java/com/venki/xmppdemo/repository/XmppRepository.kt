@@ -1,6 +1,7 @@
 package com.venki.xmppdemo.repository
 
 import com.venki.xmppdemo.data.network.XmppManager
+import com.venki.xmppdemo.model.Contact
 
 class XmppRepository {
     private val TAG = XmppRepository::class.simpleName
@@ -19,7 +20,7 @@ class XmppRepository {
         XmppManager.sendMessage(recipient, message)
     }
 
-   suspend fun getContacts(): MutableList<String> {
+   suspend fun getContacts(): MutableList<Contact> {
        return XmppManager.getRoasterEntries().toMutableList()
    }
 

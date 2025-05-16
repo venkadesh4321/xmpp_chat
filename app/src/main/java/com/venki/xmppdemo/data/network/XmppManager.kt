@@ -1,13 +1,13 @@
 package com.venki.xmppdemo.data.network
 
 import android.util.Log
+import com.venki.xmppdemo.model.Contact
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jivesoftware.smack.ConnectionConfiguration
@@ -168,7 +168,7 @@ object XmppManager {
         }
     }
 
-    fun getRoasterEntries(): List<String> {
+    fun getRoasterEntries(): List<Contact> {
         val roster = Roster.getInstanceFor(xmppConnection)
         if (!roster.isLoaded) {
             try {
@@ -177,7 +177,17 @@ object XmppManager {
                 Log.e(TAG, "Failed to reload roster: ${e.message}")
             }
         }
-        return roster.entries.map { it.jid.asBareJid().toString() }
+
+        val entries = roster.entries
+        if (entries.isEmpty()) {
+            Log.d(TAG, "No contacts found in roster")
+            return emptyList()
+        }
+        return roster.entries.map {
+            val userName = it.jid.localpartOrNull?.toString() ?: ""
+            val fullJid = it.jid.asBareJid().toString()
+            Contact(userName, fullJid)
+        }
     }
 
     fun isConnected(): Boolean = xmppConnection?.isConnected == true
