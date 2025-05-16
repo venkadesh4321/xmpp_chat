@@ -36,8 +36,8 @@ class MyApplication: Application() {
 
     private fun attemptXmppAutoConnect() {
         CoroutineScope(Dispatchers.IO).launch {
-            val userPreferenceRepository = UserPreferenceRepository()
-            val credentials = userPreferenceRepository.getCredentials(applicationContext)
+            val userPreferenceRepository = UserPreferenceRepository(applicationContext)
+            val credentials = userPreferenceRepository.getCredentials()
             if (credentials.first.isNotEmpty() && credentials.second.isNotEmpty()) {
                 Log.d(TAG, "Attempting auto-connect with saved credentials...")
                 XmppManager.connect()

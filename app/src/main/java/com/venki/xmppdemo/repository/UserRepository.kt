@@ -3,17 +3,19 @@ package com.venki.xmppdemo.repository
 import android.content.Context
 import com.venki.xmppdemo.data.local.UserPreferences
 
-class UserPreferenceRepository {
-    suspend fun saveCredentials(context: Context, userName: String, password: String) =
+class UserPreferenceRepository(
+    private val context: Context
+) {
+    suspend fun saveCredentials(userName: String, password: String) =
         UserPreferences.saveCredentials(context, userName, password)
 
-    suspend fun getCredentials(context: Context): Pair<String, String> =
+    suspend fun getCredentials(): Pair<String, String> =
         UserPreferences.getCredentials(context)
 
-    suspend fun clearCredentials(context: Context) =
+    suspend fun clearCredentials() =
         UserPreferences.clearCredentials(context)
 
-    suspend fun isLoggedIn(context: Context): Boolean {
+    suspend fun isLoggedIn(): Boolean {
         val pair = UserPreferences.getCredentials(context)
         return pair.first.isNotEmpty() && pair.second.isNotEmpty()
     }

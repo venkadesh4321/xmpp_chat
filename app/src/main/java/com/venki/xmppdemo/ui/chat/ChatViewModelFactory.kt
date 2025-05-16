@@ -8,7 +8,7 @@ class ChatViewModelFactory(
     private val xmppRepository: XmppRepository
 ) : ViewModelProvider.Factory {
     override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ContactsViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
             return ChatViewModel(xmppRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

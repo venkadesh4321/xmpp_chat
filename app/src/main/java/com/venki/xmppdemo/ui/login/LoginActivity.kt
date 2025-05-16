@@ -11,6 +11,7 @@ import com.venki.xmppdemo.R
 import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
 import com.venki.xmppdemo.ui.chat.ChatActivity
+import com.venki.xmppdemo.ui.contacts.ContactsActivity
 
 class LoginActivity : ComponentActivity() {
     private val TAG = LoginActivity::class.simpleName
@@ -32,7 +33,7 @@ class LoginActivity : ComponentActivity() {
             val password = passwordEditText.text.toString().trim()
 
             if (userName.isNotEmpty() && password.isNotEmpty()) {
-                loginViewModel.connectAndLogin(applicationContext, userName, password)
+                loginViewModel.connectAndLogin(userName, password)
             } else {
                 Toast.makeText(this, "Enter username and password", Toast.LENGTH_SHORT).show()
             }
@@ -41,7 +42,7 @@ class LoginActivity : ComponentActivity() {
 
     private fun initViewModelAndObserver() {
         val xmppRepository = XmppRepository()
-        val userPreferenceRepository = UserPreferenceRepository()
+        val userPreferenceRepository = UserPreferenceRepository(applicationContext)
         val loginViewModelFactory = LoginViewModelFactory(
             xmppRepository,
             userPreferenceRepository
@@ -53,7 +54,7 @@ class LoginActivity : ComponentActivity() {
         loginViewModel.status.observe(this) { status ->
             if (status) {
                 Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
-                startActivity(Intent(this, ChatActivity::class.java))
+                startActivity(Intent(this, ContactsActivity::class.java))
                 finish()
             } else {
                 Toast.makeText(this, "Login failed", Toast.LENGTH_SHORT).show()
