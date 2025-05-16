@@ -39,11 +39,11 @@ class MyApplication: Application() {
             val userPreferenceRepository = UserPreferenceRepository()
             val credentials = userPreferenceRepository.getCredentials(applicationContext)
             if (credentials.first.isNotEmpty() && credentials.second.isNotEmpty()) {
-                Log.d("App", "Attempting auto-connect with saved credentials...")
+                Log.d(TAG, "Attempting auto-connect with saved credentials...")
                 XmppManager.connect()
                 XmppManager.login(credentials.first, credentials.second)
             } else {
-                Log.d("App", "No saved credentials found for auto-login.")
+                Log.d(TAG, "No saved credentials found for auto-login.")
             }
         }
     }

@@ -12,4 +12,9 @@ class UserPreferenceRepository {
 
     suspend fun clearCredentials(context: Context) =
         UserPreferences.clearCredentials(context)
+
+    suspend fun isLoggedIn(context: Context): Boolean {
+        val pair = UserPreferences.getCredentials(context)
+        return pair.first.isNotEmpty() && pair.second.isNotEmpty()
+    }
 }

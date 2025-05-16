@@ -22,11 +22,9 @@ class ContactsViewModel(
                 val contacts = xmppRepository.getContacts()
                 _contacts.postValue(contacts)
             } else {
-                XmppManager.connect {
-                    viewModelScope.launch {
-                        val contacts = xmppRepository.getContacts()
-                        _contacts.postValue(contacts)
-                    }
+                viewModelScope.launch {
+                    val contacts = xmppRepository.getContacts()
+                    _contacts.postValue(contacts)
                 }
             }
         }

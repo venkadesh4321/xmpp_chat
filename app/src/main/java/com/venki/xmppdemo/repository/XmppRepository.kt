@@ -23,10 +23,6 @@ class XmppRepository {
        return XmppManager.getRoasterEntries().toMutableList()
    }
 
-    fun setupIncomingMessageListener(onMessageReceived: (String, String) -> Unit) {
-        XmppManager.setupIncomingMessageListener(onMessageReceived)
-    }
-
     fun isConnected(): Boolean = XmppManager.isConnected()
     fun isAuthenticated(): Boolean = XmppManager.isAuthenticated()
 }

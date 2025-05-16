@@ -25,18 +25,15 @@ class LoginViewModel(
 
     fun connectAndLogin(context: Context, userName: String, password: String) {
         viewModelScope.launch {
-            XmppManager.connect { status ->
-                if (status == "Connected") {
-                    viewModelScope.launch {
-                        if (xmppRepository.login(userName, password)) {
-                            Log.d(TAG, "Logged in successfully")
-                            saveCredentials(context, userName, password)
-                            _status.postValue(true)
-                        } else {
-                            Log.d(TAG, "Login failed")
-                            _status.postValue(false)
-                        }
-                    }
+            XmppManager.connect()
+            viewModelScope.launch {
+                if (xmppRepository.login(userName, password)) {
+                    Log.d(TAG, "Logged in successfully")
+                    saveCredentials(context, userName, password)
+                    _status.postValue(true)
+                } else {
+                    Log.d(TAG, "Login failed")
+                    _status.postValue(false)
                 }
             }
         }
@@ -50,8 +47,7 @@ class LoginViewModel(
 
     fun isLoggedIn(context: Context) {
         viewModelScope.launch {
-            val pair = userPreferenceRepository.getCredentials(context)
-            if (pair.first.isNotEmpty()) {
+            if (userPreferenceRepository.isLoggedIn(context)) {
                 Log.d(TAG, "Credentials found")
                 _status.postValue(true)
             }

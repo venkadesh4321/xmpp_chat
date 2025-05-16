@@ -4,7 +4,9 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -25,13 +27,17 @@ object XmppManager {
     private val domain = "siruthuli.duckdns.org"
     private val port = 5222
     private var xmppConnection: XMPPTCPConnection? = null
-    private var isIncomingMessageListenerSet = false
     private var connectionListener: ConnectionListener? = null
-    private var onStatusChangedCallback: ((String) -> Unit)? = null
-    private val _connectionState = MutableSharedFlow<XmppConnectionState>(replay = 1)
-    val connectionState: SharedFlow<XmppConnectionState> = _connectionState.asSharedFlow()
 
-    suspend fun connect(onStatusChanged: ((String) -> Unit)? = null) {
+    private val _connectionState = MutableStateFlow<XmppConnectionState>(XmppConnectionState.Disconnected)
+    val connectionState: StateFlow<XmppConnectionState> = _connectionState
+
+    private val _incomingMessages = MutableSharedFlow<IncomingMessage>()
+    val incomingMessages: SharedFlow<IncomingMessage> = _incomingMessages
+
+    private var isIncomingMessageListenerSet = false
+
+    suspend fun connect() {
         return withContext(Dispatchers.IO) {
             try {
                 if (xmppConnection?.isConnected == true) {
@@ -48,10 +54,7 @@ object XmppManager {
 
                 xmppConnection = XMPPTCPConnection(config)
 
-                // Set status callback
-                onStatusChangedCallback = onStatusChanged
                 addConnectionListener()
-                _connectionState.emit(XmppConnectionState.Connecting)
 
                 Log.d(TAG, "Trying to connect...")
                 xmppConnection?.connect()
@@ -88,6 +91,10 @@ object XmppManager {
     suspend fun sendMessage(to: String, messageBody: String) {
         return withContext(Dispatchers.IO) {
             try {
+                if (xmppConnection?.isAuthenticated == false) {
+                    Log.d(TAG, "Not logged in")
+                    return@withContext
+                }
                 val chatManager = ChatManager.getInstanceFor(xmppConnection)
                 val finalJid = if (to.contains("@")) to else "$to@$domain"
                 val jid = JidCreate.entityBareFrom(finalJid)
@@ -100,14 +107,14 @@ object XmppManager {
         }
     }
 
-    fun setupIncomingMessageListener(onNewMessage: (from: String, message: String) -> Unit) {
+    private fun setupIncomingMessageListenerIfNeeded() {
         if (!isIncomingMessageListenerSet) {
             val chatManager = ChatManager.getInstanceFor(xmppConnection)
-            chatManager.addIncomingListener { from, message, chat ->
-                Log.d("XmppManager", "New message from $from: ${message.body}")
-                onNewMessage(from.asBareJid().toString(), message.body)
-                isIncomingMessageListenerSet = true
+            chatManager.addIncomingListener { from, message, _ ->
+                Log.d(TAG, "New message from $from: ${message.body}")
+                emitIncomingMessage(IncomingMessage(from = from.asBareJid().toString(), message = message.body))
             }
+            isIncomingMessageListenerSet = true
         }
     }
 
@@ -127,16 +134,19 @@ object XmppManager {
                 override fun authenticated(connection: XMPPConnection?, resumed: Boolean) {
                     Log.d(TAG, "Authenticated")
                     emitStatus(XmppConnectionState.Authenticated)
+                    setupIncomingMessageListenerIfNeeded()
                 }
 
                 override fun connectionClosed() {
                     Log.d(TAG, "Connection closed")
                     emitStatus(XmppConnectionState.Disconnected)
+                    isIncomingMessageListenerSet = false
                 }
 
                 override fun connectionClosedOnError(e: Exception?) {
                     Log.d(TAG, "Connection closed on error: ${e?.message}")
                     emitStatus(XmppConnectionState.Disconnected)
+                    isIncomingMessageListenerSet = false
                 }
             }
         }
@@ -151,7 +161,13 @@ object XmppManager {
         }
     }
 
-    fun getRoasterEntries() : List<String> {
+    private fun emitIncomingMessage(incomingMessage: IncomingMessage) {
+        CoroutineScope(Dispatchers.IO).launch {
+            _incomingMessages.emit(incomingMessage)
+        }
+    }
+
+    fun getRoasterEntries(): List<String> {
         val roster = Roster.getInstanceFor(xmppConnection)
         if (!roster.isLoaded) {
             try {

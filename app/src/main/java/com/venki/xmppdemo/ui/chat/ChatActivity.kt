@@ -1,8 +1,6 @@
 package com.venki.xmppdemo.ui.chat
 
 import android.os.Bundle
-import android.util.Log
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ListView
@@ -11,11 +9,9 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.R
+import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.data.network.XmppConnectionState
-import com.venki.xmppdemo.data.network.XmppManager
-import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
 import kotlinx.coroutines.launch
 
@@ -38,11 +34,6 @@ class ChatActivity : ComponentActivity() {
         initViews()
         initViewModelAndObserver()
 
-        chatViewModel.connect()
-        if (!chatViewModel.isAuthenticated()) {
-            chatViewModel.login()
-        }
-
         sendBtn.setOnClickListener {
             val message = messageEditText.text.toString().trim()
             val recipient = toEditText.text.toString().trim()
@@ -57,12 +48,8 @@ class ChatActivity : ComponentActivity() {
                 return@setOnClickListener
             }
 
-            if (XmppManager.isAuthenticated()) {
-                chatViewModel.sendMessage(recipient, message)
-                messageEditText.text.clear()
-            } else {
-                Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show()
-            }
+            chatViewModel.sendMessage(recipient, message)
+            messageEditText.text.clear()
         }
     }
 
@@ -80,15 +67,13 @@ class ChatActivity : ComponentActivity() {
 
     private fun initViewModelAndObserver() {
         val xmppRepository = XmppRepository()
-        val userPreferenceRepository = UserPreferenceRepository()
-        val chatViewModelFactory =
-            ChatViewModelFactory(applicationContext, xmppRepository, userPreferenceRepository)
+        val chatViewModelFactory = ChatViewModelFactory(xmppRepository)
         chatViewModel =
             ViewModelProvider(this, chatViewModelFactory)[ChatViewModel::class.java]
 
-       /* chatViewModel.chats.observe(this) {
+        chatViewModel.chats.observe(this) {
             chatListAdapter?.updateChats(it)
-        }*/
+        }
 
         lifecycleScope.launch {
             chatViewModel.connectionState.collect { state ->
@@ -101,13 +86,6 @@ class ChatActivity : ComponentActivity() {
                     else -> {}
                 }
             }
-        }
-
-        chatViewModel.contacts.observe(this) { contacts ->
-            Log.d(TAG, "contacts: $contacts")
-            val contactsAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, contacts)
-            chatList.adapter = contactsAdapter
-            contactsAdapter.notifyDataSetChanged()
         }
     }
 
