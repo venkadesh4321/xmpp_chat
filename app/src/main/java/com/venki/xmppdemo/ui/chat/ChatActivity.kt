@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 class ChatActivity : ComponentActivity() {
     private val TAG = ChatActivity::class.simpleName
 
-    private lateinit var toEditText: EditText
     private lateinit var recipientTextView: TextView
     private lateinit var chatList: ListView
     private lateinit var messageEditText: EditText
@@ -61,7 +60,6 @@ class ChatActivity : ComponentActivity() {
     }
 
     private fun initViews() {
-        toEditText = findViewById(R.id.et_recipient)
         recipientTextView = findViewById(R.id.tv_recipient)
         chatList = findViewById(R.id.ltv_chat)
         messageEditText = findViewById(R.id.et_message)
