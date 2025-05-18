@@ -3,30 +3,23 @@ package com.venki.xmppdemo.ui.contacts
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.ArrayAdapter
-import android.widget.ListView
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.venki.xmppdemo.R
-import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.adapter.ContactsAdapter
-import com.venki.xmppdemo.adapter.ContactsListAdapter
 import com.venki.xmppdemo.model.Contact
-import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
 import com.venki.xmppdemo.ui.chat.ChatActivity
-import kotlinx.coroutines.launch
 
 class ContactsActivity: ComponentActivity() {
     private val TAG = ContactsActivity::class.simpleName
-    private lateinit var contactsViewModel: ContactsViewModel
 
     private lateinit var contactRecyclerView: RecyclerView
     private lateinit var contactsAdapter: ContactsAdapter
     private val contacts: MutableList<Contact> = mutableListOf()
+    private lateinit var contactsViewModel: ContactsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

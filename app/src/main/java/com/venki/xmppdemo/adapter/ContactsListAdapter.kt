@@ -15,7 +15,7 @@ class ContactsListAdapter(
 ) : ArrayAdapter<Contact>(context, 0, contacts) {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val contact = getItem(position)
-        val view = convertView?: LayoutInflater.from(context).inflate(R.layout.row_contacts, null, false)
+        val view = convertView?: LayoutInflater.from(context).inflate(R.layout.row_contact, null, false)
 
         val chatTextView = view.findViewById<TextView>(R.id.tv_contact_name)
 

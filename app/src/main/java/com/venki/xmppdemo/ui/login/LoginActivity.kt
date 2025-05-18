@@ -53,7 +53,6 @@ class LoginActivity : ComponentActivity() {
 
         loginViewModel.status.observe(this) { status ->
             if (status) {
-                Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this, ContactsActivity::class.java))
                 finish()
             } else {

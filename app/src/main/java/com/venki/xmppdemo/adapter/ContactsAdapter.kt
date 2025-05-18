@@ -14,7 +14,7 @@ class ContactsAdapter(
 ): RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.row_contacts, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.row_contact, parent, false)
         return ContactViewHolder(view)
     }
 
