@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
@@ -22,7 +23,7 @@ class ChatActivity : ComponentActivity() {
     private lateinit var recipientTextView: TextView
     private lateinit var chatList: ListView
     private lateinit var messageEditText: EditText
-    private lateinit var sendBtn: Button
+    private lateinit var sendBtn: ImageButton
 
     private var chatListAdapter: ChatListAdapter? = null
     private lateinit var chatViewModel: ChatViewModel

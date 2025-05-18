@@ -8,8 +8,11 @@ import android.widget.ListView
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.adapter.ChatListAdapter
+import com.venki.xmppdemo.adapter.ContactsAdapter
 import com.venki.xmppdemo.adapter.ContactsListAdapter
 import com.venki.xmppdemo.model.Contact
 import com.venki.xmppdemo.repository.UserPreferenceRepository
@@ -21,8 +24,8 @@ class ContactsActivity: ComponentActivity() {
     private val TAG = ContactsActivity::class.simpleName
     private lateinit var contactsViewModel: ContactsViewModel
 
-    private lateinit var contactListView: ListView
-    private lateinit var contactsListAdapter: ContactsListAdapter
+    private lateinit var contactRecyclerView: RecyclerView
+    private lateinit var contactsAdapter: ContactsAdapter
     private val contacts: MutableList<Contact> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,27 +47,23 @@ class ContactsActivity: ComponentActivity() {
         contactsViewModel.contact.observe(this) { it ->
             contacts.clear()
             contacts.addAll(it)
-            contactsListAdapter.updateContacts(it)
+            contactsAdapter.updateContacts(it)
         }
     }
 
     private fun initView() {
-        contactListView = findViewById(R.id.ltv_contacts)
+        contactRecyclerView = findViewById(R.id.rv_contacts)
 
-        contactsListAdapter = ContactsListAdapter(this, mutableListOf())
-        contactListView.adapter = contactsListAdapter
-
-        // Set click listener for contact items
-        contactListView.setOnItemClickListener { _, _, position, _ ->
-            val selectedContact = contacts[position]
-            Log.d(TAG, "Selected contact: $selectedContact")
-
-            // Launch ChatActivity with the selected contact
+        contactsAdapter = ContactsAdapter(mutableListOf(), {
+            Log.d(TAG, "Selected contact: $it")
             val intent = Intent(this, ChatActivity::class.java).apply {
-                putExtra("recipient", selectedContact.name)
-                putExtra("jid", selectedContact.jid)
+                putExtra("recipient", it.name)
+                putExtra("jid", it.jid)
             }
             startActivity(intent)
-        }
+        })
+        val linearLayout = LinearLayoutManager(this)
+        contactRecyclerView.layoutManager = linearLayout
+        contactRecyclerView.adapter = contactsAdapter
     }
 }
