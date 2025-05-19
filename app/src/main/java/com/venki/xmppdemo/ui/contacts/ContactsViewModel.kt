@@ -10,6 +10,7 @@ import com.venki.xmppdemo.data.network.XmppManager
 import com.venki.xmppdemo.model.Contact
 import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ContactsViewModel(
@@ -26,18 +27,12 @@ class ContactsViewModel(
     fun getContacts() {
         viewModelScope.launch {
             _isLoading.postValue(true)
-            XmppManager.connectionState.collect { state ->
-                when (state) {
-                    is XmppConnectionState.Authenticated -> {
-                            val contactList = xmppRepository.getContacts()
-                            _isLoading.postValue(false)
-                            _contact.postValue(contactList)
-                    }
-                    else -> {
-                        _isLoading.postValue(false)
-                    }
-                }
-            }
+
+            val state = XmppManager.connectionState.first { it is XmppConnectionState.Authenticated }
+
+            val contactList = xmppRepository.getContacts()
+            _contact.postValue(contactList)
+            _isLoading.postValue(false)
         }
     }
 }
