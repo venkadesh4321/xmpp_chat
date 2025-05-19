@@ -20,6 +20,7 @@ import com.venki.xmppdemo.model.Contact
 import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
 import com.venki.xmppdemo.ui.chat.ChatActivity
+import com.venki.xmppdemo.ui.login.LoginActivity
 import com.venki.xmppdemo.util.LoadingOverlayView
 import kotlinx.coroutines.launch
 
@@ -97,6 +98,9 @@ class ContactsActivity: AppCompatActivity() {
                 lifecycleScope.launch {
                     userPreferenceRepository.clearCredentials()
                 }
+
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
                 true
             }
             else -> super.onOptionsItemSelected(item)
