@@ -1,8 +1,6 @@
 package com.venki.xmppdemo.ui.chat
 
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ListView
@@ -10,12 +8,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.adapter.ChatListAdapter
-import com.venki.xmppdemo.data.network.XmppConnectionState
 import com.venki.xmppdemo.repository.XmppRepository
-import kotlinx.coroutines.launch
 
 class ChatActivity : ComponentActivity() {
     private val TAG = ChatActivity::class.simpleName

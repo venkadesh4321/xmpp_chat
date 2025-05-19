@@ -20,16 +20,22 @@ class LoginViewModel(
     private val _status = MutableLiveData<Boolean>()
     val status: LiveData<Boolean> = _status
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
     fun connectAndLogin(userName: String, password: String) {
         viewModelScope.launch {
+            _isLoading.postValue(true)
             XmppManager.connect()
             if (xmppRepository.login(userName, password)) {
                 Log.d(TAG, "Logged in successfully")
                 saveCredentials(userName, password)
                 _status.postValue(true)
+                _isLoading.postValue(false)
             } else {
                 Log.d(TAG, "Login failed")
                 _status.postValue(false)
+                _isLoading.postValue(false)
             }
         }
     }

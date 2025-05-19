@@ -20,15 +20,22 @@ class ContactsViewModel(
     val contact: LiveData<MutableList<Contact>>
         get() = _contact
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
     fun getContacts() {
         viewModelScope.launch {
+            _isLoading.postValue(true)
             XmppManager.connectionState.collect { state ->
                 when (state) {
                     is XmppConnectionState.Authenticated -> {
                             val contactList = xmppRepository.getContacts()
+                            _isLoading.postValue(false)
                             _contact.postValue(contactList)
                     }
-                    else -> {}
+                    else -> {
+                        _isLoading.postValue(false)
+                    }
                 }
             }
         }
