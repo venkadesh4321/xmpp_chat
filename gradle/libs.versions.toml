@@ -10,16 +10,19 @@ espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
 composeBom = "2025.04.01"
+materialVersion = "1.12.0"
 smackAndroid = "4.4.6"
 smackDebug = "4.4.6"
 smackExtensions = "4.4.6"
 smackTcp = "4.4.6"
 recyclerview = "1.4.0"
+appcompat = "1.7.0"
 
 [libraries]
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayoutVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+google-material = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -38,6 +41,7 @@ smack-debug = { module = "org.igniterealtime.smack:smack-debug", version.ref = "
 smack-extensions = { module = "org.igniterealtime.smack:smack-extensions", version.ref = "smackExtensions" }
 smack-tcp = { module = "org.igniterealtime.smack:smack-tcp", version.ref = "smackTcp" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

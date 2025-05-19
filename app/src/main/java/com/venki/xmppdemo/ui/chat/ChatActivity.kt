@@ -7,15 +7,15 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.repository.XmppRepository
 
-class ChatActivity : ComponentActivity() {
+class ChatActivity : AppCompatActivity() {
     private val TAG = ChatActivity::class.simpleName
 
-    private lateinit var recipientTextView: TextView
     private lateinit var chatList: ListView
     private lateinit var messageEditText: EditText
     private lateinit var sendBtn: ImageButton
@@ -31,11 +31,6 @@ class ChatActivity : ComponentActivity() {
 
         initViews()
         initViewModelAndObserver()
-
-        recipient = intent.getStringExtra("recipient") ?: ""
-        jId = intent.getStringExtra("jid") ?: ""
-
-        recipientTextView.text = recipient
 
         sendBtn.setOnClickListener {
             val message = messageEditText.text.toString().trim()
@@ -56,7 +51,6 @@ class ChatActivity : ComponentActivity() {
     }
 
     private fun initViews() {
-        recipientTextView = findViewById(R.id.tv_recipient)
         chatList = findViewById(R.id.ltv_chat)
         messageEditText = findViewById(R.id.et_message)
         sendBtn = findViewById(R.id.btn_send)
@@ -64,6 +58,14 @@ class ChatActivity : ComponentActivity() {
         chatListAdapter = ChatListAdapter(this, mutableListOf())
         chatList.adapter = chatListAdapter
         chatList.selector = getDrawable(android.R.color.transparent)
+
+        var toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
+        recipient = intent.getStringExtra("recipient") ?: ""
+        jId = intent.getStringExtra("jid") ?: ""
+
+        supportActionBar?.title = recipient
     }
 
     private fun initViewModelAndObserver() {
