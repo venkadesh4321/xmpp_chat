@@ -1,6 +1,7 @@
 package com.venki.xmppdemo.ui.contacts
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -10,6 +11,7 @@ import android.widget.ProgressBar
 import android.widget.Toolbar
 import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -65,6 +67,11 @@ class ContactsActivity: AppCompatActivity() {
         loadingProgress = findViewById(R.id.loading_overlay)
 
         var toolbar = findViewById<androidx.appcompat.widget.Toolbar>(R.id.toolbar)
+        val drawable = toolbar.overflowIcon
+        drawable?.let {
+            DrawableCompat.setTint(DrawableCompat.wrap(it), Color.WHITE)
+            toolbar.overflowIcon = it
+        }
         setSupportActionBar(toolbar)
 
         supportActionBar?.title = "Contacts"
