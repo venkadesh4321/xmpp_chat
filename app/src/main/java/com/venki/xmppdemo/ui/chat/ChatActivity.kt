@@ -1,19 +1,23 @@
 package com.venki.xmppdemo.ui.chat
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ListView
-import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.adapter.ChatListAdapter
 import com.venki.xmppdemo.repository.XmppRepository
+import com.venki.xmppdemo.ui.contacts.ContactsActivity
+import com.venki.xmppdemo.util.NotificationUtils
+import kotlinx.coroutines.launch
 
 class ChatActivity : AppCompatActivity() {
     private val TAG = ChatActivity::class.simpleName
@@ -58,7 +62,9 @@ class ChatActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            chatViewModel.sendMessage(jId, message)
+            lifecycleScope.launch {
+                chatViewModel.sendMessage(jId, message)
+            }
             messageEditText.text.clear()
         }
     }
@@ -78,6 +84,7 @@ class ChatActivity : AppCompatActivity() {
         recipient = intent.getStringExtra("recipient") ?: ""
         jId = intent.getStringExtra("jid") ?: ""
 
+        Log.d(TAG, "initViews: $jId")
         supportActionBar?.title = recipient
     }
 
@@ -87,8 +94,34 @@ class ChatActivity : AppCompatActivity() {
         chatViewModel =
             ViewModelProvider(this, chatViewModelFactory)[ChatViewModel::class.java]
 
-        chatViewModel.chats.observe(this) {
-            chatListAdapter?.updateChats(it)
+        chatViewModel.observeIncomingMessagesFor(jId)
+
+        lifecycleScope.launch {
+            chatViewModel.uiEvents.collect { event ->
+                when (event) {
+                    is ChatUiEvent.IncomingMessage -> {
+                        // Append to chat RecyclerView
+                        chatListAdapter?.updateChats(event.chat)
+                    }
+
+                    is ChatUiEvent.FallbackMessage -> {
+                        Log.d(TAG, "fallbaack message: ${event.fromJid} - ${event.message}")
+                        val context = this@ChatActivity
+                        val intent = Intent(context, ContactsActivity::class.java)
+                        /*val intent = Intent(context, ChatActivity::class.java).apply {
+                            putExtra("jid", event.fromJid)
+                            putExtra("recipient", event.fromJid.substringBefore("@"))
+                        }*/
+
+                        NotificationUtils.showNotification(
+                            context,
+                            title = "New message from ${event.fromJid.substringBefore("@")}",
+                            message = event.message,
+                            targetIntent = intent
+                        )
+                    }
+                }
+            }
         }
     }
 }

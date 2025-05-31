@@ -11,7 +11,7 @@ import com.venki.xmppdemo.model.Contact
 class ContactsAdapter(
     private val contacts: MutableList<Contact>,
     private val onClick: (Contact) -> Unit
-): RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>() {
+) : RecyclerView.Adapter<ContactsAdapter.ContactViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.row_contact, parent, false)
@@ -35,9 +35,17 @@ class ContactsAdapter(
 
     inner class ContactViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val contactName: TextView = itemView.findViewById(R.id.tv_contact_name)
+        private val latestMessage: TextView = itemView.findViewById(R.id.tv_latest_message)
 
         fun bind(contact: Contact) {
             contactName.text = contact.name
+
+            if (contact.latestMessage.isNotBlank()) {
+                latestMessage.visibility = View.VISIBLE
+                latestMessage.text = contact.latestMessage
+            } else {
+                latestMessage.visibility = View.GONE
+            }
             itemView.setOnClickListener {
                 onClick.invoke(contact)
             }
