@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.venki.xmppdemo.data.network.XmppManager
 import com.venki.xmppdemo.repository.UserPreferenceRepository
 import com.venki.xmppdemo.repository.XmppRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
@@ -24,7 +25,7 @@ class LoginViewModel(
     val isLoading: LiveData<Boolean> = _isLoading
 
     fun connectAndLogin(userName: String, password: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _isLoading.postValue(true)
             XmppManager.connect()
             if (xmppRepository.login(userName, password)) {
