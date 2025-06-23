@@ -8,6 +8,17 @@
     android:layout_margin="30dp"
     tools:context=".ui.splash.MainActivity">
 
+    <TextView
+        android:id="@+id/random_no_text_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/start_service_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="100" />
+
     <Button
         android:id="@+id/start_service_btn"
         android:layout_width="match_parent"
@@ -26,5 +37,33 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/start_service_btn" />
+
+    <Button
+        android:id="@+id/bind_service_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Bind Service"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/stop_service_btn" />
+
+    <Button
+        android:id="@+id/unbind_service_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Unbind Service"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bind_service_btn" />
+
+    <Button
+        android:id="@+id/get_random_no_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get Random No"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/unbind_service_btn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

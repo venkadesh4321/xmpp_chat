@@ -6,21 +6,19 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 
-class MyService: Service() {
+class MyService : Service() {
     private val TAG = MyService::class.simpleName
 
     private val MIN_VALUE = 0
     private val MAX_VALUE = 100
     private var randomNumberGenerator = false
-    private var randomNumber = 0
+    private var randomNumber: Int = 0
 
-    class MyServiceBinder : Binder() {
-        fun getService(): MyService {
-            return MyService()
-        }
+    inner class MyServiceBinder : Binder() {
+        fun getService(): MyService = this@MyService
     }
 
-    private val binder = MyServiceBinder()
+    private val binder: IBinder = MyServiceBinder()
 
     override fun onBind(intent: Intent?): IBinder? {
         Log.d(TAG, "onBind")
@@ -38,17 +36,23 @@ class MyService: Service() {
         Thread {
             startRandomNumberGeneration()
         }.start()
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
     fun startRandomNumberGeneration() {
         Log.d(TAG, "startRandomNumberGeneration ${Thread.currentThread().name}")
         // Simulate random number generation
-        while(randomNumberGenerator) {
-            // Generate a random number between MIN_VALUE and MAX_VALUE
-            val generatedNumber = (MIN_VALUE..MAX_VALUE).random()
-            Log.d(TAG, "Generated random number: $generatedNumber")
-            Thread.sleep(1000) // Simulate delay for demonstration
+        while (randomNumberGenerator) {
+            try {
+                Thread.sleep(1000) // Simulate delay for demonstration
+                if (randomNumberGenerator) {
+                    // Generate a random number between MIN_VALUE and MAX_VALUE
+                    randomNumber = (MIN_VALUE..MAX_VALUE).random()
+                    Log.d(TAG, "Generated random number: $randomNumber")
+                }
+            } catch (e: InterruptedException) {
+                Log.e(TAG, "Thread interrupted", e)
+            }
         }
     }
 
@@ -59,6 +63,8 @@ class MyService: Service() {
     }
 
     fun getRandomNumber(): Int {
+        Log.d(TAG, "getRandomNumber: ${Thread.currentThread().name}")
+        Log.d(TAG, "getRandomNumber: $randomNumber")
         return randomNumber
     }
 
