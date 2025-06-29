@@ -3,18 +3,25 @@ package com.venki.xmppdemo.ui.splash
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.lifecycle.lifecycleScope
 import com.venki.xmppdemo.repository.UserPreferenceRepository
+import com.venki.xmppdemo.ui.JoinScreen
 import com.venki.xmppdemo.ui.chat.ChatActivity
 import com.venki.xmppdemo.ui.contacts.ContactsActivity
 import com.venki.xmppdemo.ui.login.LoginActivity
+import com.venki.xmppdemo.ui.login.LoginScreen
 import kotlinx.coroutines.launch
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launch {
+        setContent {
+            JoinScreen()
+        }
+
+        /*lifecycleScope.launch {
             val userPreferenceRepository = UserPreferenceRepository(applicationContext)
             val creds = userPreferenceRepository.getCredentials()
 
@@ -26,6 +33,6 @@ class SplashActivity : ComponentActivity() {
 
             startActivity(intent)
             finish()
-        }
+        }*/
     }
 }
