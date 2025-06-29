@@ -13,13 +13,11 @@ import com.venki.xmppdemo.R
 
 @Composable
 fun TextFieldComponent(
-    modifier: Modifier,
     label: String,
     value: String,
     onValueChange: (String) -> Unit
 ) {
     OutlinedTextField(
-        modifier = modifier,
         value = value,
         onValueChange = onValueChange,
         label = { Text(text = label) },
@@ -29,12 +27,10 @@ fun TextFieldComponent(
 
 @Composable
 fun ButtonComponent(
-    modifier: Modifier,
     text: String,
     onClick: () -> Unit
 ) {
     Button(
-        modifier = modifier,
         onClick = onClick
     ) {
         Text(text = text)
