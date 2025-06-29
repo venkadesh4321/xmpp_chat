@@ -1,4 +1,4 @@
-package com.venki.xmppdemo.ui
+package com.venki.xmppdemo.ui.screen
 
 object Routes {
     const val LOGIN_SCREEN = "login_screen"

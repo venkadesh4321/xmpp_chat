@@ -1,4 +1,4 @@
-package com.venki.xmppdemo.ui
+package com.venki.xmppdemo.ui.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.venki.xmppdemo.R
+import com.venki.xmppdemo.ui.ButtonComponent
+import com.venki.xmppdemo.ui.ImageComponent
+import com.venki.xmppdemo.ui.TextFieldComponent
 
 @Composable
 fun JoinScreen(navController: NavController) {

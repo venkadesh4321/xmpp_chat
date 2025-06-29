@@ -23,7 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.ui.ButtonComponent
 import com.venki.xmppdemo.ui.ImageComponent
-import com.venki.xmppdemo.ui.Routes
+import com.venki.xmppdemo.ui.screen.Routes
 import com.venki.xmppdemo.ui.TextFieldComponent
 
 @Composable

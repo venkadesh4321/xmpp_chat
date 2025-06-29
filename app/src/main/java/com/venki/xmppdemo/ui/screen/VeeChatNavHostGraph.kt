@@ -1,4 +1,4 @@
-package com.venki.xmppdemo.ui
+package com.venki.xmppdemo.ui.screen
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
