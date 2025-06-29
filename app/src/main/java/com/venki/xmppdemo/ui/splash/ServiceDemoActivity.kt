@@ -10,8 +10,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.venki.xmppdemo.R
 
-class MainActivity : AppCompatActivity() {
-    private val TAG = MainActivity::class.simpleName
+class ServiceDemoActivity : AppCompatActivity() {
+    private val TAG = ServiceDemoActivity::class.simpleName
 
     private lateinit var startService: Button
     private lateinit var stopService: Button
