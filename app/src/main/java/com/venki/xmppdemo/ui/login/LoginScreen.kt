@@ -1,5 +1,6 @@
 package com.venki.xmppdemo.ui.login
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,13 +18,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.venki.xmppdemo.R
 import com.venki.xmppdemo.ui.ButtonComponent
 import com.venki.xmppdemo.ui.ImageComponent
+import com.venki.xmppdemo.ui.Routes
 import com.venki.xmppdemo.ui.TextFieldComponent
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavHostController) {
     Box(modifier = Modifier.fillMaxSize()) {
         ImageComponent(
             modifier = Modifier.fillMaxWidth(),
@@ -64,7 +68,10 @@ fun LoginScreen() {
             Text(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .clickable{
+                        navController.navigate(Routes.JOIN_SCREEN)
+                    },
                 textAlign = TextAlign.End,
                 text = "Join VeeChat",
                 color = Color.Blue
@@ -76,5 +83,5 @@ fun LoginScreen() {
 @Preview(showSystemUi = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    LoginScreen(rememberNavController())
 }

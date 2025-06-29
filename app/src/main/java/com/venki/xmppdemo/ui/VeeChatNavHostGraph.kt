@@ -12,11 +12,11 @@ fun VeeChatNavHostGraph() {
 
     NavHost(navController = navController, startDestination = Routes.LOGIN_SCREEN) {
         composable(Routes.LOGIN_SCREEN){
-            LoginScreen()
+            LoginScreen(navController)
         }
 
         composable(Routes.JOIN_SCREEN) {
-            JoinScreen()
+            JoinScreen(navController)
         }
     }
 }
